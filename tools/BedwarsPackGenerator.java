@@ -49,6 +49,7 @@ public class BedwarsPackGenerator {
         Armor.generate();
         Items.generate();
         TeamBlocks.generate();
+        World.generate();
         System.out.println("Generated " + written + " textures in " + root.toAbsolutePath());
     }
 
@@ -812,6 +813,611 @@ public class BedwarsPackGenerator {
             if (ly == 3) return FRAME[2];
             if (ly == 0) return FRAME[4];
             return FRAME[Blocks.hash(x / 3, y, 404) < 0.2 ? 2 : 3];
+        }
+    }
+    // =====================================================================================================
+    // Group 5: building and map blocks, chests
+    // =====================================================================================================
+
+    /**
+     * End stone, obsidian, planks and logs of every Bedwars wood, sandstone, stone, cobblestone, clay, grass, dirt,
+     * stone bricks, quartz, prismarine (an animated aurora shimmer), common map blocks and chests, all drawn from
+     * scratch in the same clean, top-left-lit style as the team blocks. Slabs and stairs use these textures too.
+     */
+    static final class World {
+        private World() {
+        }
+
+        record Wood(String name, int planks, int bark, int core) {
+        }
+
+        static final Wood[] WOODS = {
+            new Wood("oak", 0xB8915A, 0x6E5436, 0xC29B62),
+            new Wood("spruce", 0x7C5836, 0x3F2D1D, 0x8C6640),
+            new Wood("birch", 0xD8C78E, 0xE6E2D8, 0xDCCD96),
+            new Wood("jungle", 0xB57F56, 0x5C4A26, 0xBE8A5E),
+            new Wood("acacia", 0xC76B3A, 0x6E675E, 0xCE7746),
+            new Wood("dark_oak", 0x5C3F24, 0x3A2918, 0x6A4A2C),
+            new Wood("mangrove", 0x7C3733, 0x5A4535, 0x86403B),
+            new Wood("cherry", 0xE7BBB2, 0x3B2331, 0xEBC4BC),
+        };
+
+        static void generate() throws IOException {
+            save(endStone(), "block/end_stone");
+            save(obsidian(), "block/obsidian");
+            for (Wood w : WOODS) {
+                save(planks(Blocks.ramp(w.planks), w.name.hashCode()), "block/" + w.name + "_planks");
+                save(logSide(w), "block/" + w.name + "_log");
+                save(logTop(w), "block/" + w.name + "_log_top");
+            }
+            save(bambooPlanks(), "block/bamboo_planks");
+            save(bambooSide(), "block/bamboo_block");
+            save(bambooTop(), "block/bamboo_block_top");
+            int[] sand = Blocks.ramp(0xE2CE8E);
+            save(sandstoneSide(sand), "block/sandstone");
+            save(smooth(sand, 41, 0.04, true), "block/sandstone_top");
+            save(smooth(Blocks.ramp(0xD6C083), 42, 0.1, true), "block/sandstone_bottom");
+            save(slabs(sand, 2, 43), "block/cut_sandstone");
+            save(chiseled(sand, 44), "block/chiseled_sandstone");
+            save(stone(), "block/stone");
+            save(cobblestone(), "block/cobblestone");
+            save(clay(), "block/clay");
+            save(dirt(), "block/dirt");
+            save(grassTop(), "block/grass_block_top");
+            save(grassSide(false), "block/grass_block_side");
+            save(grassSide(true), "block/grass_block_side_overlay");
+            int[] brick = Blocks.ramp(0x8E9199);
+            save(bricks(brick, 2, 8, 51, null), "block/stone_bricks");
+            save(bricks(brick, 2, 8, 52, "mossy"), "block/mossy_stone_bricks");
+            save(bricks(brick, 2, 8, 53, "cracked"), "block/cracked_stone_bricks");
+            save(chiseled(brick, 54), "block/chiseled_stone_bricks");
+            int[] quartz = Blocks.ramp(0xEAE6E1);
+            save(quartzSide(quartz), "block/quartz_block_side");
+            save(quartzSide(quartz), "block/quartz_block_bottom");
+            save(quartzTop(quartz), "block/quartz_block_top");
+            save(pillar(quartz), "block/quartz_pillar");
+            save(pillarTop(quartz), "block/quartz_pillar_top");
+            save(chiseled(quartz, 61), "block/chiseled_quartz_block");
+            save(chiseled(quartz, 62), "block/chiseled_quartz_block_top");
+            save(bricks(quartz, 4, 8, 63, null), "block/quartz_bricks");
+            save(prismarine(), "block/prismarine");
+            Files.writeString(tex.resolve("block/prismarine.png.mcmeta"), "{\n  \"animation\": {\n    \"frametime\": 12,\n    \"interpolate\": true\n  }\n}\n", StandardCharsets.UTF_8);
+            save(bricks(Blocks.ramp(0x4FB3A6), 4, 8, 71, null), "block/prismarine_bricks");
+            save(slabs(Blocks.ramp(0x2F5E5A), 2, 72), "block/dark_prismarine");
+            save(mottled(Blocks.ramp(0x8A8C8F), Blocks.ramp(0xA6A8AB), 81), "block/andesite");
+            save(smooth(Blocks.ramp(0x8C8E91), 82, 0.05, true), "block/polished_andesite");
+            save(mottled(Blocks.ramp(0xD8D8DA), Blocks.ramp(0x8E8E92), 83), "block/diorite");
+            save(smooth(Blocks.ramp(0xD5D5D8), 84, 0.05, true), "block/polished_diorite");
+            save(mottled(Blocks.ramp(0x9C6A58), Blocks.ramp(0xB98472), 85), "block/granite");
+            save(smooth(Blocks.ramp(0x9E6B59), 86, 0.05, true), "block/polished_granite");
+            save(smooth(Blocks.ramp(0xA4A7AD), 87, 0.03, true), "block/smooth_stone");
+            save(slabs(Blocks.ramp(0xA4A7AD), 2, 88), "block/smooth_stone_slab_side");
+            save(bricks(Blocks.ramp(0xA54A3C), 4, 8, 89, null), "block/bricks");
+            save(snow(), "block/snow");
+            save(packedIce(), "block/packed_ice");
+            save(glowstone(), "block/glowstone");
+            chests();
+        }
+
+        // ------------------------------------------------------------------ toolkit
+
+        /** Jittered points on an n x n grid of the 16 px torus: nearest cell, distance to it and to the second. */
+        static final class Cells {
+            final int[] id = new int[256];
+            final double[] d1 = new double[256], d2 = new double[256];
+            final double[][] pts;
+
+            Cells(int n, int seed) {
+                pts = new double[n * n][2];
+                double size = 16.0 / n;
+                for (int i = 0; i < n * n; i++) {
+                    pts[i][0] = (i % n + 0.15 + Blocks.hash(i, 1, seed) * 0.7) * size;
+                    pts[i][1] = (i / n + 0.15 + Blocks.hash(i, 2, seed) * 0.7) * size;
+                }
+                for (int y = 0; y < 16; y++) {
+                    for (int x = 0; x < 16; x++) {
+                        double best = 99, second = 99;
+                        int bi = 0;
+                        for (int i = 0; i < pts.length; i++) {
+                            double d = Math.hypot(Blocks.wrap(x + 0.5 - pts[i][0]), Blocks.wrap(y + 0.5 - pts[i][1]));
+                            if (d < best) {
+                                second = best;
+                                best = d;
+                                bi = i;
+                            } else if (d < second) {
+                                second = d;
+                            }
+                        }
+                        id[y * 16 + x] = bi;
+                        d1[y * 16 + x] = best;
+                        d2[y * 16 + x] = second;
+                    }
+                }
+            }
+
+            double dx(int i, int x) {
+                return Blocks.wrap(x + 0.5 - pts[id[i]][0]);
+            }
+
+            double dy(int i, int y) {
+                return Blocks.wrap(y + 0.5 - pts[id[i]][1]);
+            }
+        }
+
+        static Img smooth(int[] r, int seed, double speckle, boolean frame) {
+            return Blocks.light(frame ? Blocks.framed(1.0) : new double[256], r, Blocks.speckle(seed, speckle, speckle * 0.8), 1.0);
+        }
+
+        /** Horizontal slabs {@code 16/rows} px tall, each beveled. */
+        static Img slabs(int[] r, int rows, int seed) {
+            int t = 16 / rows;
+            double[] hgt = new double[256];
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    int ly = y % t;
+                    hgt[y * 16 + x] = ly == t - 1 ? -1 : Math.min(Math.min(ly + 0.5, t - 1.5 - ly), 1.4) + (x == 15 ? -0.5 : 0);
+                }
+            }
+            return Blocks.light(hgt, r, Blocks.speckle(seed, 0.04, 0.04), 0.9);
+        }
+
+        /**
+         * Bricks: {@code rows} courses, bricks {@code len} px long, every other course offset by half a brick, one
+         * pixel of sunken mortar. Variants add moss or cracks.
+         */
+        static Img bricks(int[] r, int rows, int len, int seed, String variant) {
+            int t = 16 / rows;
+            double[] hgt = new double[256], off = Blocks.speckle(seed, 0.05, 0.05);
+            int[] rampOf = new int[256];
+            for (int y = 0; y < 16; y++) {
+                int course = y / t, ly = y % t;
+                for (int x = 0; x < 16; x++) {
+                    int lx = Math.floorMod(x + (course % 2 == 1 ? len / 2 : 0), len);
+                    boolean mortar = ly == t - 1 || lx == len - 1;
+                    double d = Math.min(Math.min(lx + 0.5, len - 1.5 - lx), Math.min(ly + 0.5, t - 1.5 - ly));
+                    int i = y * 16 + x;
+                    hgt[i] = mortar ? -1.1 : Math.min(d, 1.3);
+                    if (mortar) rampOf[i] = 1;
+                    if ("mossy".equals(variant)) {
+                        double n = Blocks.hash(x / 2, y / 2, seed) * 0.6 + (mortar ? 0.35 : 0) + (ly >= t - 3 ? 0.15 : 0);
+                        if (n > 0.62) rampOf[i] = 2;
+                    }
+                }
+            }
+            if ("cracked".equals(variant)) {
+                int[][] crack = {{3, 1}, {4, 2}, {4, 3}, {5, 4}, {5, 5}, {6, 6}, {11, 9}, {12, 10}, {12, 11}, {11, 12}, {12, 13}, {13, 14}};
+                for (int[] c : crack) {
+                    off[c[1] * 16 + c[0]] = -0.45;
+                    hgt[c[1] * 16 + c[0]] -= 0.6;
+                }
+            }
+            int[] mortarRamp = Blocks.ramp(Col.mix(r[2], 0xFF1C1E26, 0.35) & 0xFFFFFF);
+            return Blocks.light(16, 16, hgt, new int[][]{r, mortarRamp, Blocks.ramp(0x5E8C3B)}, rampOf, off, 0.9);
+        }
+
+        /** A carved panel: raised border, sunken square inside and a four-pointed aurora star in the middle. */
+        static Img chiseled(int[] r, int seed) {
+            double[] hgt = new double[256];
+            double[] off = Blocks.speckle(seed, 0.03, 0.03);
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    double e = TeamBlocks.edge(x, y);
+                    double h = e < 2 ? 1.2 : e < 3 ? -0.6 : 0.2;
+                    double cx = Math.abs(x + 0.5 - 8), cy = Math.abs(y + 0.5 - 8);
+                    boolean star = (cx * cy < 0.9 && cx + cy < 5.2) || cx + cy < 1.6;
+                    if (star) h = 1.0;
+                    hgt[y * 16 + x] = h;
+                }
+            }
+            return Blocks.light(hgt, r, off, 0.95);
+        }
+
+        /** Two-tone mottled stone (andesite, diorite, granite): soft blobs of a second color. */
+        static Img mottled(int[] a, int[] b, int seed) {
+            Cells c = new Cells(4, seed);
+            int[] rampOf = new int[256];
+            double[] hgt = new double[256];
+            for (int i = 0; i < 256; i++) {
+                boolean blob = Blocks.hash(c.id[i], 7, seed) < 0.4 && c.d1[i] < 2.2;
+                rampOf[i] = blob ? 1 : 0;
+                hgt[i] = blob ? 0.5 : 0;
+            }
+            return Blocks.light(16, 16, hgt, new int[][]{a, b}, rampOf, Blocks.speckle(seed, 0.06, 0.06), 0.9);
+        }
+
+        // ------------------------------------------------------------------ stones
+
+        static Img endStone() {
+            double[] hgt = Blocks.framed(0.8), off = Blocks.speckle(11, 0.06, 0.07);
+            double[][] craters = {{4, 4, 1.6}, {11, 3, 1.1}, {8, 9, 1.8}, {3, 12, 1.2}, {13, 12, 1.4}};
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    for (double[] c : craters) {
+                        double d = Math.hypot(Blocks.wrap(x + 0.5 - c[0]), Blocks.wrap(y + 0.5 - c[1]));
+                        if (d < c[2]) hgt[y * 16 + x] -= (c[2] - d) * 0.9;
+                    }
+                }
+            }
+            return Blocks.light(hgt, Blocks.ramp(0xE3DDA9), off, 1.0);
+        }
+
+        /** Faceted volcanic glass: flat facets at random tilts, fine cracks, and teal / violet glints. */
+        static Img obsidian() {
+            Cells c = new Cells(4, 12);
+            double[] hgt = new double[256];
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    int i = y * 16 + x;
+                    double sx = (Blocks.hash(c.id[i], 3, 12) - 0.5) * 1.2, sy = (Blocks.hash(c.id[i], 4, 12) - 0.5) * 1.2;
+                    hgt[i] = sx * c.dx(i, x) + sy * c.dy(i, y) + Blocks.hash(c.id[i], 5, 12) * 0.6;
+                    if (c.d2[i] - c.d1[i] < 0.6) hgt[i] -= 0.5;
+                }
+            }
+            Img img = Blocks.light(hgt, Blocks.ramp(0x2A1A44), null, 1.1);
+            img.set(4, 3, 0xFF8EF5EA);
+            img.set(11, 9, 0xFFC9AEFF);
+            img.set(6, 13, 0xFF8EF5EA);
+            img.set(13, 4, 0xFFE6DAFF);
+            return img;
+        }
+
+        static Img stone() {
+            Cells c = new Cells(3, 21);
+            double[] hgt = new double[256];
+            for (int i = 0; i < 256; i++) {
+                hgt[i] = Blocks.hash(c.id[i], 9, 21) * 0.6;
+                if (c.d2[i] - c.d1[i] < 0.45) hgt[i] -= 0.5;
+            }
+            return Blocks.light(hgt, Blocks.ramp(0x8B8E95), Blocks.speckle(22, 0.05, 0.05), 0.85);
+        }
+
+        static Img cobblestone() {
+            Cells c = new Cells(3, 23);
+            double[] hgt = new double[256];
+            int[] rampOf = new int[256];
+            for (int i = 0; i < 256; i++) {
+                boolean mortar = c.d2[i] - c.d1[i] < 0.8;
+                hgt[i] = mortar ? -0.6 : Math.max(0.2, 2.2 - c.d1[i] * 0.75) + Blocks.hash(c.id[i], 1, 23) * 0.3;
+                rampOf[i] = mortar ? 1 : Blocks.hash(c.id[i], 2, 23) < 0.3 ? 2 : 0;
+            }
+            return Blocks.light(16, 16, hgt, new int[][]{Blocks.ramp(0x80848C), Blocks.ramp(0x4B4E57), Blocks.ramp(0x969AA2)}, rampOf,
+                Blocks.speckle(24, 0.04, 0.04), 1.0);
+        }
+
+        static Img clay() {
+            double[] hgt = Blocks.framed(0.6);
+            for (int y = 0; y < 16; y++) for (int x = 0; x < 16; x++) hgt[y * 16 + x] += 0.35 * Math.sin(y * 0.8 + 0.7 * Math.sin(x * 0.4));
+            return Blocks.light(hgt, Blocks.ramp(0xA2A9BA), Blocks.speckle(25, 0.03, 0.03), 0.8);
+        }
+
+        static Img dirt() {
+            double[] hgt = new double[256], off = Blocks.speckle(26, 0.05, 0.1);
+            int[] rampOf = new int[256];
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    double n = Blocks.hash(x, y, 27);
+                    if (n < 0.07) {
+                        hgt[y * 16 + x] = 0.9; // pebbles
+                        rampOf[y * 16 + x] = 1;
+                    }
+                }
+            }
+            return Blocks.light(16, 16, hgt, new int[][]{Blocks.ramp(0x8A5D3B), Blocks.ramp(0x9C8A78)}, rampOf, off, 0.9);
+        }
+
+        /** A neutral grey ramp for textures the game tints (grass). */
+        static int[] grey(int v) {
+            int[] r = new int[8];
+            double[] f = {0.32, 0.55, 0.7, 0.85, 1.0, 1.1, 1.2, 1.3};
+            for (int i = 0; i < 8; i++) {
+                int g = Col.clamp((int) Math.round(v * f[i]));
+                r[i] = 0xFF000000 | (g << 16) | (g << 8) | g;
+            }
+            return r;
+        }
+
+        /** Grass top (tinted by the biome): soft tufts of lighter blades on an even base. */
+        static Img grassTop() {
+            double[] hgt = new double[256], off = new double[256];
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    double n = Blocks.hash(x, y, 28);
+                    if (n < 0.16) {
+                        off[y * 16 + x] = 0.17; // blade tips
+                        hgt[y * 16 + x] = 0.6;
+                    } else if (n > 0.9) {
+                        off[y * 16 + x] = -0.17;
+                    }
+                }
+            }
+            return Blocks.light(hgt, grey(150), off, 0.8);
+        }
+
+        /** Fringe depth of the grass on the block side per column. */
+        static int fringe(int x) {
+            return 3 + (int) (Blocks.hash(x, 0, 29) * 2.2) - (x % 5 == 2 ? 1 : 0);
+        }
+
+        static Img grassSide(boolean overlay) {
+            Img img = overlay ? new Img(16, 16) : dirt();
+            int[] green = overlay ? grey(150) : Blocks.ramp(0x6EAE45);
+            for (int x = 0; x < 16; x++) {
+                int f = fringe(x);
+                for (int y = 0; y < f; y++) img.set(x, y, green[y == 0 ? 6 : y == f - 1 ? 3 : 4]);
+            }
+            return img;
+        }
+
+        // ------------------------------------------------------------------ wood
+
+        /** Two wide boards with beveled edges, staggered joints, nail heads and light grain. */
+        static Img planks(int[] r, int seed) {
+            double[] hgt = new double[256], off = new double[256];
+            int[] joints = {11, 4};
+            for (int y = 0; y < 16; y++) {
+                int board = y / 8, ly = y % 8;
+                for (int x = 0; x < 16; x++) {
+                    int i = y * 16 + x;
+                    boolean seam = ly == 7, joint = x == joints[board];
+                    hgt[i] = seam ? -1.1 : joint ? -0.9 : Math.min(Math.min(ly + 0.5, 6.5 - ly), 1.2);
+                    if (!seam && !joint && Blocks.hash((x + seed) / 3, y, seed) < 0.22) off[i] -= 0.14; // grain
+                    boolean nail = (ly == 2 || ly == 4) && (x == Math.floorMod(joints[board] - 2, 16) || x == Math.floorMod(joints[board] + 2, 16));
+                    if (nail && ly == 2) off[i] -= 0.4;
+                }
+            }
+            return Blocks.light(hgt, r, off, 0.85);
+        }
+
+        /** Bark: vertical ridges with a slight wander, knots; birch is white with dark marks. */
+        static Img logSide(Wood w) {
+            boolean birch = w.name.equals("birch");
+            double[] hgt = new double[256], off = new double[256];
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    int i = y * 16 + x;
+                    double phase = Blocks.hash(x / 4, y / 6, w.bark) * 1.5;
+                    hgt[i] = birch ? 0 : 0.8 * Math.sin((x + 0.5) * Math.PI / 2 + phase);
+                    if (birch) {
+                        boolean mark = Blocks.hash(x / 3, y, 31) < 0.12 && (y % 5 == 1);
+                        if (mark) off[i] = -0.6;
+                    } else if (Blocks.hash(x, y, w.bark) < 0.05) {
+                        off[i] = -0.2;
+                    }
+                }
+            }
+            return Blocks.light(hgt, Blocks.ramp(w.bark), off, birch ? 0.7 : 0.9);
+        }
+
+        /** Log end: bark ring around rings of lighter wood and a darker pith. */
+        static Img logTop(Wood w) {
+            double[] hgt = new double[256], off = new double[256];
+            int[] rampOf = new int[256];
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    int i = y * 16 + x;
+                    double dx = x + 0.5 - 8, dy = y + 0.5 - 8;
+                    double ring = Math.max(Math.abs(dx), Math.abs(dy)) * 0.6 + Math.hypot(dx, dy) * 0.4;
+                    if (TeamBlocks.edge(x, y) < 1.5) {
+                        rampOf[i] = 1;
+                        hgt[i] = 0.4;
+                    } else {
+                        if (((int) Math.floor(ring)) % 2 == 0) off[i] -= 0.15;
+                        if (ring < 1.2) off[i] -= 0.3;
+                    }
+                }
+            }
+            return Blocks.light(16, 16, hgt, new int[][]{Blocks.ramp(w.core), Blocks.ramp(w.bark)}, rampOf, off, 0.9);
+        }
+
+        static Img bambooPlanks() {
+            double[] hgt = new double[256], off = new double[256];
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    int lx = x % 4;
+                    hgt[y * 16 + x] = lx == 3 ? -1 : Math.min(lx + 0.5, 2.5 - lx);
+                    if (y % 8 == 3 && lx != 3) off[y * 16 + x] -= 0.25; // nodes
+                }
+            }
+            return Blocks.light(hgt, Blocks.ramp(0xD9C35C), off, 0.85);
+        }
+
+        static Img bambooSide() {
+            double[] hgt = new double[256], off = new double[256];
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    int lx = x % 5;
+                    hgt[y * 16 + x] = x == 15 ? -1 : Math.sqrt(Math.max(0, 1 - sq((lx + 0.5) / 2.5 - 1))) * 1.6;
+                    if ((y + x / 5 * 3) % 8 == 0) off[y * 16 + x] -= 0.35;
+                }
+            }
+            return Blocks.light(hgt, Blocks.ramp(0x7FA33A), off, 0.9);
+        }
+
+        static Img bambooTop() {
+            double[] hgt = new double[256];
+            int[] rampOf = new int[256];
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    double dx = (x % 8) + 0.5 - 4, dy = (y % 8) + 0.5 - 4, d = Math.hypot(dx, dy);
+                    hgt[y * 16 + x] = d < 3.2 ? (d < 1.6 ? -0.4 : 0.8) : -0.8;
+                    rampOf[y * 16 + x] = d < 1.6 ? 1 : 0;
+                }
+            }
+            return Blocks.light(16, 16, hgt, new int[][]{Blocks.ramp(0x7FA33A), Blocks.ramp(0xD9C35C)}, rampOf, null, 0.9);
+        }
+
+        static double sq(double v) {
+            return v * v;
+        }
+
+        // ------------------------------------------------------------------ sandstone, quartz, prismarine, misc
+
+        /** Sandstone side: a raised top band, smooth strata in the middle and a darker base band. */
+        static Img sandstoneSide(int[] r) {
+            double[] hgt = new double[256], off = Blocks.speckle(45, 0.03, 0.03);
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    int i = y * 16 + x;
+                    if (y <= 3) hgt[i] = y == 3 ? 0.2 : 1.0;
+                    else if (y >= 12) {
+                        hgt[i] = y == 12 ? -0.5 : 0.3;
+                        off[i] -= 0.12;
+                    } else if (y == 7 || y == 9) off[i] -= 0.12;
+                }
+            }
+            return Blocks.light(hgt, r, off, 0.9);
+        }
+
+        static Img quartzSide(int[] r) {
+            double[] hgt = Blocks.framed(0.8), off = new double[256];
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    int d = x - y;
+                    if ((d == 3 || d == -6) && Blocks.hash(x, y, 64) < 0.75) off[y * 16 + x] -= 0.12; // faint veins
+                }
+            }
+            return Blocks.light(hgt, r, off, 1.0);
+        }
+
+        static Img quartzTop(int[] r) {
+            double[] hgt = Blocks.framed(0.8);
+            for (int y = 0; y < 16; y++) for (int x = 0; x < 16; x++) if (TeamBlocks.edge(x, y) > 3 && TeamBlocks.edge(x, y) < 4) hgt[y * 16 + x] -= 0.6;
+            return Blocks.light(hgt, r, null, 1.0);
+        }
+
+        static Img pillar(int[] r) {
+            double[] hgt = new double[256];
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    double h = 0.5 * Math.cos((x + 0.5) * Math.PI / 2.5);
+                    if (x == 0 || x == 15) h = -0.6;
+                    hgt[y * 16 + x] = h;
+                }
+            }
+            return Blocks.light(hgt, r, null, 0.9);
+        }
+
+        static Img pillarTop(int[] r) {
+            double[] hgt = Blocks.framed(0.8);
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    double d = Math.hypot(x + 0.5 - 8, y + 0.5 - 8);
+                    if (d > 4.5 && d < 5.6) hgt[y * 16 + x] -= 0.7;
+                    if (d < 2) hgt[y * 16 + x] += 0.4;
+                }
+            }
+            return Blocks.light(hgt, r, null, 1.0);
+        }
+
+        /**
+         * Prismarine as an aurora shimmer: soft teal plates whose color drifts between teal and violet over eight
+         * interpolated frames.
+         */
+        static Img prismarine() {
+            int frames = 8;
+            Img img = new Img(16, 16 * frames);
+            Cells c = new Cells(3, 73);
+            double[] hgt = new double[256];
+            for (int i = 0; i < 256; i++) hgt[i] = c.d2[i] - c.d1[i] < 0.6 ? -0.6 : Blocks.hash(c.id[i], 3, 73) * 0.7;
+            Img teal = Blocks.light(hgt, Blocks.ramp(0x46B3A5), Blocks.speckle(74, 0.04, 0.03), 0.9);
+            Img violet = Blocks.light(hgt, Blocks.ramp(0x7E62C9), Blocks.speckle(74, 0.04, 0.03), 0.9);
+            for (int f = 0; f < frames; f++) {
+                double phase = f * Math.PI * 2 / frames;
+                for (int y = 0; y < 16; y++) {
+                    for (int x = 0; x < 16; x++) {
+                        double t = 0.5 + 0.5 * Math.sin(phase + x * 0.35 + y * 0.25);
+                        img.set(x, f * 16 + y, Col.mix(teal.get(x, y), violet.get(x, y), t * 0.75));
+                    }
+                }
+            }
+            return img;
+        }
+
+        static Img snow() {
+            Img img = Blocks.light(new double[256], Blocks.ramp(0xEEF3FA), Blocks.speckle(91, 0.04, 0.06), 1.0);
+            img.set(3, 5, 0xFFFFFFFF);
+            img.set(11, 12, 0xFFFFFFFF);
+            img.set(13, 3, 0xFFE6FBFF);
+            return img;
+        }
+
+        static Img packedIce() {
+            Cells c = new Cells(3, 92);
+            double[] hgt = new double[256];
+            for (int i = 0; i < 256; i++) hgt[i] = c.d2[i] - c.d1[i] < 0.5 ? -0.5 : 0.3;
+            return Blocks.light(hgt, Blocks.ramp(0x9CC6EE), Blocks.speckle(93, 0.05, 0.02), 0.9);
+        }
+
+        static Img glowstone() {
+            Cells c = new Cells(4, 94);
+            double[] hgt = new double[256], off = new double[256];
+            for (int i = 0; i < 256; i++) {
+                hgt[i] = c.d2[i] - c.d1[i] < 0.6 ? -0.4 : 0.6;
+                off[i] = c.d1[i] < 0.9 ? 0.35 : c.d1[i] < 1.8 ? 0.15 : 0;
+            }
+            return Blocks.light(hgt, Blocks.ramp(0xE0A63C), off, 0.8);
+        }
+
+        // ------------------------------------------------------------------ chests
+
+        interface FacePaint {
+            int at(String face, int x, int y, int w, int h);
+        }
+
+        /** Paints the six faces of a model cuboid at texture offset (u, v) with size (w, h, d). */
+        static void box(Img img, int u, int v, int w, int h, int d, FacePaint p) {
+            int[][] faces = {{u + d, v, w, d}, {u + d + w, v, w, d}, {u, v + d, d, h}, {u + d, v + d, w, h}, {u + d + w, v + d, d, h},
+                {u + d + w + d, v + d, w, h}};
+            String[] names = {"top", "bottom", "right", "front", "left", "back"};
+            for (int f = 0; f < 6; f++) {
+                int[] r = faces[f];
+                for (int y = 0; y < r[3]; y++) for (int x = 0; x < r[2]; x++) img.set(r[0] + x, r[1] + y, p.at(names[f], x, y, r[2], r[3]));
+            }
+        }
+
+        static void chests() throws IOException {
+            int[] wood = Blocks.ramp(0x8A5A34), band = Blocks.ramp(0x5B4E86), red = Blocks.ramp(0xC23B4A);
+            int[] ender = Blocks.ramp(0x2A1F45), glow = Blocks.ramp(0x4FE0D2);
+            save(chest(wood, band, Blocks.ramp(0xA98BF5), 14), "entity/chest/normal");
+            save(chest(wood, band, Blocks.ramp(0xA98BF5), 15), "entity/chest/normal_left");
+            save(chest(wood, band, Blocks.ramp(0xA98BF5), 15), "entity/chest/normal_right");
+            save(chest(wood, red, Blocks.ramp(0xFF7A8A), 14), "entity/chest/trapped");
+            save(chest(wood, red, Blocks.ramp(0xFF7A8A), 15), "entity/chest/trapped_left");
+            save(chest(wood, red, Blocks.ramp(0xFF7A8A), 15), "entity/chest/trapped_right");
+            save(chest(ender, glow, glow, 14), "entity/chest/ender");
+        }
+
+        /**
+         * A 64x64 chest on the vanilla model layout ({@code width} 14 for single chests, 15 for each half of a double
+         * chest): boards framed by colored metal bands, a dark inside and a glowing latch.
+         */
+        static Img chest(int[] body, int[] band, int[] latch, int width) {
+            Img img = new Img(64, 64);
+            FacePaint lid = (face, x, y, w, h) -> {
+                if (face.equals("top")) return inside(body, x, y, w, h); // the underside of the lid
+                return boards(body, band, face, x, y, w, h);
+            };
+            FacePaint base = (face, x, y, w, h) -> {
+                if (face.equals("bottom")) return inside(body, x, y, w, h); // the inside of the base
+                return boards(body, band, face, x, y, w, h);
+            };
+            box(img, 0, 0, width, 5, 14, lid);
+            box(img, 0, 19, width, 10, 14, base);
+            box(img, 0, 0, width == 14 ? 2 : 1, 4, 1, (face, x, y, w, h) -> face.equals("front") && y == 1 ? 0xFF14101F : latch[y == 0 ? 6 : 4 - Math.min(y, 2) + 1]);
+            return img;
+        }
+
+        static int inside(int[] body, int x, int y, int w, int h) {
+            boolean rim = x == 0 || y == 0 || x == w - 1 || y == h - 1;
+            return rim ? body[2] : body[1];
+        }
+
+        static int boards(int[] body, int[] band, String face, int x, int y, int w, int h) {
+            boolean edge = x == 0 || y == 0 || x == w - 1 || y == h - 1;
+            if (edge) return band[(x == 0 || y == 0) ? 5 : 3];
+            int s = y % 3 == 2 ? 3 : (y % 3 == 0 ? 5 : 4);
+            if (Blocks.hash(x / 3, y, 401) < 0.15) s--;
+            return body[s];
         }
     }
 }

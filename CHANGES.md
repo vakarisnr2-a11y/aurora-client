@@ -413,3 +413,22 @@ neighbours (cyan and light blue, lime and green, pink and magenta, the two greys
   these.
 - **Beds**: a diamond-quilted blanket in the team color that folds over the foot end, a white pillow with violet
   piping, and a dark night-violet wooden frame, underside and legs.
+
+### Building and map blocks (own designs)
+Drawn from scratch with the same light and clean surfaces. Slabs and stairs use the same textures.
+- **End stone**: pale cream with round craters and a soft frame. **Obsidian**: faceted dark violet glass with
+  fine cracks and teal/violet glints.
+- **Planks** for oak, spruce, birch, jungle, acacia, dark oak, mangrove, cherry and bamboo: two wide boards per
+  block with beveled edges, staggered joints, nail heads and light grain (bamboo has vertical slats). **Logs** and
+  log tops for every wood: ridged bark (birch white with dark marks) and ringed ends. Also the bamboo block.
+- **Sandstone** (side with a raised top band and strata, top, bottom), **cut sandstone** (two slabs) and
+  **chiseled sandstone** (a carved panel with a four-pointed aurora star).
+- **Stone**, **cobblestone** (rounded stones in dark mortar), **clay**, **dirt** (with pebbles), **grass block**
+  (tufted top, dirt side with a jagged grass fringe, tint overlay).
+- **Stone bricks** (plus mossy, cracked and chiseled), **quartz** (block, top, pillar, pillar top, chiseled,
+  bricks), **prismarine** (an animated aurora shimmer drifting between teal and violet), prismarine bricks and dark
+  prismarine.
+- Extra map blocks: andesite, diorite and granite (and polished), smooth stone (and slab side), bricks, snow,
+  packed ice and glowstone.
+- **Chests** (single and double halves), **trapped chests** (red bands) and the **ender chest** (dark violet with
+  teal glowing bands). Each has boards framed by colored metal bands, a dark inside and a glowing latch.
