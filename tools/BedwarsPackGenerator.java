@@ -44,6 +44,7 @@ public class BedwarsPackGenerator {
         vanilla = new ZipFile(findJar(args.length > 1 ? args[1] : null).toFile());
         deleteTree(root.resolve("assets"));
         Weapons.generate();
+        Armor.generate();
         System.out.println("Generated " + written + " textures in " + root.toAbsolutePath());
     }
 
@@ -310,6 +311,41 @@ public class BedwarsPackGenerator {
                 }
             }
             return out;
+        }
+    }
+    // =====================================================================================================
+    // Group 2: armor
+    // =====================================================================================================
+
+    /**
+     * Armor icons and worn armor for leather, chainmail, iron, gold, diamond and netherite. Leather's base textures
+     * are copied unchanged because the game tints them with the dye color (team colors in Bedwars); its untinted
+     * overlays get the grade like everything else.
+     */
+    static final class Armor {
+        private Armor() {
+        }
+
+        static void generate() throws IOException {
+            String[] pieces = {"helmet", "chestplate", "leggings", "boots"};
+            for (String m : new String[]{"leather", "chainmail", "iron", "golden", "diamond", "netherite"}) {
+                for (String p : pieces) {
+                    if (m.equals("leather")) {
+                        save(v("item/leather_" + p), "item/leather_" + p);
+                        graded("item/leather_" + p + "_overlay");
+                    } else {
+                        graded("item/" + m + "_" + p);
+                    }
+                }
+            }
+            for (String m : new String[]{"chainmail", "iron", "gold", "diamond", "netherite"}) {
+                graded("models/armor/" + m + "_layer_1");
+                graded("models/armor/" + m + "_layer_2");
+            }
+            for (String l : new String[]{"1", "2"}) {
+                save(v("models/armor/leather_layer_" + l), "models/armor/leather_layer_" + l);
+                graded("models/armor/leather_layer_" + l + "_overlay");
+            }
         }
     }
 }

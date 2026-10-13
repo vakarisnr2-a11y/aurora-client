@@ -381,3 +381,9 @@ the game tints itself (leather, potion liquid) are left neutral so dyes and effe
   about a quarter shorter and covers less of the screen in first person. Guard, grip and colors are unchanged.
 - Pickaxes and axes (all tiers), shears, bow and all pull stages, crossbow (standby, pulling, loaded with arrow or
   firework), arrow, spectral arrow, fishing rod (and cast) and stick, all with the Aurora grade.
+
+### Armor
+- Helmet, chestplate, leggings and boots icons, and the worn armor layers, for chainmail, iron, gold, diamond and
+  netherite, all with the Aurora grade.
+- Leather keeps vanilla's neutral base so the game's dye tint shows true team colors. Its untinted overlays
+  (laces, trims) get the grade.
