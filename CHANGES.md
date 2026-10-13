@@ -3,9 +3,10 @@
 ## Batch A: Bedwars features
 
 > **Not tested in-game.** These modules compile, their game-independent logic is unit-tested and
-> the mixin targets were checked against the mapped 1.21.1 jar with `javap`. Nobody has played
-> with them yet: rendering, positions, colors and behavior on real servers (e.g. Hypixel) are
-> unverified.
+> the mixin targets were checked against the mapped 1.21.1 jar with `javap`. The dev client
+> (`gradlew runClient`, headless) starts and reaches the title screen with all 44 modules registered
+> and no mixin errors. No world or server was joined, so none of the features were exercised.
+> Rendering, positions, colors and behavior on real servers (e.g. Hypixel) are unverified.
 
 Five new modules, all **off by default**:
 
