@@ -18,14 +18,15 @@ gradlew runClient    (dev client; the first run downloads game assets)
 ```
 Regenerate the texture pack: `java tools/BedwarsPackGenerator.java src/main/resources/resourcepacks/aurora_bedwars src/main/resources/assets/aurora/icon.png`
 
-## Modules (39)
+## Modules (44)
 - **Combat:** Target HUD, Combo Counter, Reach Display
-- **Visuals:** Fullbright, Crosshair, Nametags, Hit Color, No Hurt Cam, Perspective, Low Fire, Bedwars Pack, Module List, Watermark, Keystrokes
+- **Visuals:** Fullbright, Crosshair, Nametags, Gear Tags (enemy armor/sword tier on nametags), Hit Color, No Hurt Cam, Perspective, Low Fire, Bedwars Pack, Module List, Watermark, Keystrokes
 - **Movement:** Sprint, Safe Walk, Step, Freelook (hold L-Alt), Camera Smoothing, Movement HUD
 - **Player:** Auto Tool, Inventory Sorter (middle-click in inventory/chest), Toggle Sprint, Toggle Sneak
-- **World:** World Color, Block Outline, Time & Weather
-- **Utility:** FPS, Coordinates, Ping, CPS, Armor Status, Potion Effects, Durability, Zoom (hold C), Screenshot (F12)
-- **Misc:** ClickGUI (R-Shift), HUD Editor, Notifications
+- **World:** World Color, Block Outline, Time & Weather, TNT Timer (fuse countdown above primed TNT)
+- **Utility:** FPS, Coordinates, Ping, Tab Ping (ping in ms in the tab list), CPS, Armor Status, Potion Effects, Durability,
+  Resource Counter (iron/gold/diamonds/emeralds carried), Zoom (hold C), Screenshot (F12)
+- **Misc:** ClickGUI (R-Shift), HUD Editor, Notifications, Chat Alerts (sound on your chat keywords; none set by default)
 
 ## Commands
 `/aurora toggle|bind|unbind|reset <module> [key]`, `/aurora list|gui|hud`, `/aurora profile list|save|load|create|delete|export|import`

@@ -16,7 +16,9 @@
     "LivingEntityRendererMixin",
     "MouseMixin",
     "OverlayTextureAccessor",
-    "PlayerEntityMixin"
+    "PlayerEntityMixin",
+    "PlayerListHudMixin",
+    "TntEntityRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -4,6 +4,7 @@ import dev.aurora.client.command.AuroraCommands;
 import dev.aurora.client.config.ConfigManager;
 import dev.aurora.client.config.LoadReport;
 import dev.aurora.client.event.EventBus;
+import dev.aurora.client.event.events.ChatReceiveEvent;
 import dev.aurora.client.event.events.ModuleToggleEvent;
 import dev.aurora.client.event.events.Render2DEvent;
 import dev.aurora.client.event.events.Render3DEvent;
@@ -21,6 +22,7 @@ import dev.aurora.client.util.CpsTracker;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.fabricmc.fabric.api.event.player.AttackEntityCallback;
@@ -120,6 +122,11 @@ public final class AuroraClient implements ClientModInitializer {
             if (world.isClient) CombatTracker.INSTANCE.onAttack(player, entity);
             return ActionResult.PASS;
         });
+
+        ClientReceiveMessageEvents.CHAT.register((message, signedMessage, sender, params, receptionTimestamp) ->
+            eventBus.post(ChatReceiveEvent.INSTANCE.set(message, sender == null ? null : sender.getId(), false)));
+        ClientReceiveMessageEvents.GAME.register((message, overlay) ->
+            eventBus.post(ChatReceiveEvent.INSTANCE.set(message, null, overlay)));
     }
 
     private void loadConfig() {
