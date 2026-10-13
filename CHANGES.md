@@ -399,3 +399,17 @@ the game tints itself (leather, potion liquid) are left neutral so dyes and effe
   these textures.
 - **Sponge** and **wet sponge**: smooth with neat shaded pores. The wet one is olive with glossy droplets.
 - **Ladder**: dark wooden rails and rungs with violet-steel brackets.
+
+### Team blocks and beds (own designs)
+All 16 colors, drawn from scratch and lit from the top-left like the rest of the pack. Team colors are spread out so
+neighbours (cyan and light blue, lime and green, pink and magenta, the two greys) are easy to tell apart.
+- **Wool**: soft quilted cushions with rounded edges, a stitch line two pixels in and a faint diagonal sheen.
+  Placed wool shows a clear crease between blocks, which helps when bridging.
+- **Concrete**: polished slabs with a crisp bevel frame and a gloss streak.
+- **Terracotta** (and plain terracotta): matte 2x2 tiles with fine grooves and a little grain, in muted
+  clay-tinted colors.
+- **Stained glass** and **glass**: a thin frame, bright corner brackets, two sheen lines and a translucent tint
+  (clear for glass). Pane edges match. Blast-proof glass in Bedwars is team-colored stained glass, so it uses
+  these.
+- **Beds**: a diamond-quilted blanket in the team color that folds over the foot end, a white pillow with violet
+  piping, and a dark night-violet wooden frame, underside and legs.

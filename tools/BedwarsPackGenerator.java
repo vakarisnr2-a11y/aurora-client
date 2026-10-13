@@ -48,6 +48,7 @@ public class BedwarsPackGenerator {
         Weapons.generate();
         Armor.generate();
         Items.generate();
+        TeamBlocks.generate();
         System.out.println("Generated " + written + " textures in " + root.toAbsolutePath());
     }
 
@@ -603,6 +604,214 @@ public class BedwarsPackGenerator {
                 }
             }
             return img;
+        }
+    }
+    // =====================================================================================================
+    // Group 4: team blocks and beds
+    // =====================================================================================================
+
+    /**
+     * Wool, concrete, terracotta, stained glass (and panes) and beds in all 16 colors, drawn from scratch. The team
+     * colors are spread out so neighbours are easy to tell apart, and each material has its own surface: wool is a
+     * soft quilted cushion, concrete a polished slab with a gloss streak, terracotta matte 2x2 tiles, glass a clean
+     * pane with corner brackets.
+     */
+    static final class TeamBlocks {
+        private TeamBlocks() {
+        }
+
+        static final String[] COLORS = {"white", "orange", "magenta", "light_blue", "yellow", "lime", "pink", "gray",
+            "light_gray", "cyan", "purple", "blue", "brown", "green", "red", "black"};
+        static final int[] RGB = {0xE9ECF2, 0xF2862A, 0xC94BD6, 0x5AB8F5, 0xF5CF2E, 0x7BD43A, 0xF28DBD, 0x585E6B,
+            0xA0A6B1, 0x14A2A8, 0x7C43CF, 0x3354D1, 0x7A4E2E, 0x3F7A22, 0xD1312C, 0x1F2026};
+
+        static void generate() throws IOException {
+            for (int i = 0; i < COLORS.length; i++) {
+                int[] r = Blocks.ramp(RGB[i]);
+                save(wool(r), "block/" + COLORS[i] + "_wool");
+                save(concrete(r, i), "block/" + COLORS[i] + "_concrete");
+                save(terracotta(Blocks.ramp(muted(RGB[i])), i), "block/" + COLORS[i] + "_terracotta");
+                save(glass(r, true), "block/" + COLORS[i] + "_stained_glass");
+                save(paneTop(r), "block/" + COLORS[i] + "_stained_glass_pane_top");
+                save(bed(r), "entity/bed/" + COLORS[i]);
+            }
+            save(terracotta(Blocks.ramp(0x9A5B3E), 16), "block/terracotta");
+            int[] clear = Blocks.ramp(0xBFE3F2);
+            save(glass(clear, false), "block/glass");
+            save(paneTop(clear), "block/glass_pane_top");
+        }
+
+        /** Terracotta colors: the team color pulled towards baked clay and slightly darker. */
+        static int muted(int rgb) {
+            return Col.mix(0xFF000000 | rgb, 0xFF9C6A50, 0.32) & 0xFFFFFF;
+        }
+
+        /** Distance from the pixel centre to the nearest block edge (0.5 on the border pixels). */
+        static double edge(int x, int y) {
+            return Math.min(Math.min(x + 0.5, y + 0.5), Math.min(15.5 - x, 15.5 - y));
+        }
+
+        /** A soft cushion: rounded edges, a dashed stitch line two pixels in and a faint diagonal sheen. */
+        static Img wool(int[] r) {
+            double[] hgt = new double[256], off = new double[256];
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    int i = y * 16 + x;
+                    double d = edge(x, y), rad = 3.0;
+                    hgt[i] = d >= rad ? rad : Math.sqrt(rad * rad - (rad - d) * (rad - d));
+                    boolean stitch = Math.round(d - 0.5) == 2 && (x + y) % 2 == 0;
+                    if (stitch) off[i] -= 0.2;
+                    int diag = x + y;
+                    if (diag >= 7 && diag <= 9 && d > 2.5) off[i] += 0.1; // sheen
+                    if (Blocks.hash(x, y, 31) < 0.05) off[i] += 0.12; // felt
+                }
+            }
+            return Blocks.light(hgt, r, off, 0.75);
+        }
+
+        /** Polished slab: flat, a crisp bevel frame and a glossy streak near the top-left corner. */
+        static Img concrete(int[] r, int seed) {
+            double[] hgt = Blocks.framed(1.0), off = Blocks.speckle(200 + seed, 0.03, 0.03);
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    int diag = x + y;
+                    if ((diag == 5 || diag == 6) && x >= 2 && y >= 2) off[y * 16 + x] += 0.34;
+                    if (diag == 8 && x >= 3 && y >= 3 && x <= 6) off[y * 16 + x] += 0.18;
+                }
+            }
+            return Blocks.light(hgt, r, off, 1.0);
+        }
+
+        /** Matte terracotta: four 8x8 tiles with fine grooves and a little grain. */
+        static Img terracotta(int[] r, int seed) {
+            double[] hgt = new double[256], off = Blocks.speckle(300 + seed, 0.09, 0.07);
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    int lx = x % 8, ly = y % 8;
+                    double d = Math.min(Math.min(lx + 0.5, ly + 0.5), Math.min(7.5 - lx, 7.5 - ly));
+                    hgt[y * 16 + x] = (lx == 7 || ly == 7) ? -0.9 : Math.min(d, 1.6);
+                }
+            }
+            return Blocks.light(hgt, r, off, 0.8);
+        }
+
+        /**
+         * Clean glass: a thin frame lit on the top/left, bright corner brackets and two diagonal sheen lines.
+         * Stained glass fills the middle with a translucent tint.
+         */
+        static Img glass(int[] r, boolean stained) {
+            Img img = new Img(16, 16);
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    boolean border = x == 0 || y == 0 || x == 15 || y == 15;
+                    int c;
+                    if (border) c = Col.alpha(r[(x == 0 || y == 0) ? 5 : 3], 215);
+                    else c = stained ? Col.alpha(r[4], 96) : 0;
+                    img.set(x, y, c);
+                }
+            }
+            int bracket = Col.alpha(r[7], 255);
+            for (int i = 0; i < 4; i++) {
+                img.set(i, 0, bracket);
+                img.set(0, i, bracket);
+                img.set(15 - i, 15, Col.alpha(r[5], 255));
+                img.set(15, 15 - i, Col.alpha(r[5], 255));
+            }
+            int sheen = stained ? 0x70FFFFFF : 0x96FFFFFF;
+            for (int i = 0; i < 6; i++) img.set(3 + i, 8 - i, sheen);
+            for (int i = 0; i < 3; i++) img.set(6 + i, 9 - i, sheen);
+            return img;
+        }
+
+        static Img paneTop(int[] r) {
+            Img img = new Img(16, 16);
+            for (int y = 0; y < 16; y++) for (int x = 0; x < 16; x++) img.set(x, y, Col.alpha(r[x % 2 == 0 ? 4 : 5], 225));
+            return img;
+        }
+
+        // ------------------------------------------------------------------ beds
+
+        static final int[] FRAME = Blocks.ramp(0x3E3458);
+        static final int[] SHEET = Blocks.ramp(0xE6E9F1);
+        static final int[] PIPING = Blocks.ramp(0x8B5CF6);
+
+        /**
+         * 64x64 bed on the vanilla model layout: the head piece has a white pillow with violet piping on the sheet,
+         * then the blanket; the foot piece is covered by the blanket, which folds over the foot end. Frame,
+         * underside and legs are dark night-violet wood. The blanket is quilted in diamonds with a soft sheen.
+         */
+        static Img bed(int[] b) {
+            Img img = new Img(64, 64);
+            // Head end (6..21, 0..5): frame, sheet edge, pillow side.
+            for (int y = 0; y < 6; y++) {
+                for (int x = 6; x < 22; x++) {
+                    int c = y < 2 ? FRAME[y == 0 ? 3 : 4] : y == 2 ? SHEET[3] : y == 3 ? PIPING[5] : SHEET[y == 4 ? 6 : 5];
+                    img.set(x, y, c);
+                }
+            }
+            // Head top (6..21, 6..21) with the side faces (0..5 and 22..27) continuing it.
+            for (int y = 6; y < 22; y++) {
+                for (int x = 0; x < 28; x++) {
+                    int side = x < 6 ? x : x >= 22 ? 27 - x : -1;
+                    int c;
+                    if (side >= 0 && side < 1) c = FRAME[4];
+                    else if (side >= 0 && side < 3) c = SHEET[side == 1 ? 3 : 4];
+                    else if (y <= 12) c = pillow(x, y, side);
+                    else if (y <= 14) c = SHEET[y == 13 ? 6 : 4];
+                    else c = quilt(b, x, y, y == 15);
+                    img.set(x, y, c);
+                }
+            }
+            // Foot end (22..37, 22..27): frame, sheet edge, blanket folded over.
+            for (int y = 22; y < 28; y++) {
+                for (int x = 22; x < 38; x++) {
+                    int c = y < 24 ? FRAME[y == 22 ? 3 : 4] : y == 24 ? SHEET[4] : b[y == 25 ? 5 : y == 27 ? 2 : 3];
+                    img.set(x, y, c);
+                }
+            }
+            // Foot top (6..21, 28..43) and sides.
+            for (int y = 28; y < 44; y++) {
+                for (int x = 0; x < 28; x++) {
+                    int side = x < 6 ? x : x >= 22 ? 27 - x : -1;
+                    int c;
+                    if (side >= 0 && side < 2) c = FRAME[side == 0 ? 3 : 4];
+                    else if (side == 2) c = SHEET[4];
+                    else c = quilt(b, x, y, false);
+                    if (y == 43 && side < 0) c = b[2]; // hem
+                    img.set(x, y, c);
+                }
+            }
+            // Undersides and legs.
+            for (int y = 6; y < 22; y++) for (int x = 28; x < 44; x++) img.set(x, y, plank(x, y));
+            for (int y = 28; y < 44; y++) for (int x = 28; x < 44; x++) img.set(x, y, plank(x, y));
+            for (int y = 0; y < 24; y++) for (int x = 50; x < 62; x++) img.set(x, y, FRAME[(x - 50) % 3 == 0 ? 4 : y % 6 == 5 ? 2 : 3]);
+            return img;
+        }
+
+        static int pillow(int x, int y, int side) {
+            if (side >= 0) return y == 6 ? SHEET[5] : SHEET[side == 3 ? 4 : 5];
+            int px = x - 6;
+            boolean inPillow = px >= 1 && px <= 14 && y >= 7 && y <= 12;
+            if (!inPillow) return SHEET[4];
+            boolean rim = px == 1 || px == 14 || y == 7 || y == 12;
+            if (rim) return PIPING[y == 7 || px == 1 ? 5 : 3];
+            return SHEET[y == 8 ? 7 : y == 11 ? 5 : 6];
+        }
+
+        /** Diamond quilting: darker stitch lines on the diagonals, lit pixels just above them, a fold on top. */
+        static int quilt(int[] b, int x, int y, boolean fold) {
+            if (fold) return b[6];
+            int u = Math.floorMod(x + y, 6), v = Math.floorMod(x - y, 6);
+            if (u == 0 || v == 0) return b[3];
+            if (u == 1 || v == 1) return b[5];
+            return b[4];
+        }
+
+        static int plank(int x, int y) {
+            int ly = y % 4;
+            if (ly == 3) return FRAME[2];
+            if (ly == 0) return FRAME[4];
+            return FRAME[Blocks.hash(x / 3, y, 404) < 0.2 ? 2 : 3];
         }
     }
 }
