@@ -380,3 +380,16 @@ grey, iron near-white, gold yellow, diamond cyan, netherite dark violet-grey.
 - **Bow**, standby and all three pull stages. The string draws back further each stage, with the arrow nocked.
 - **Crossbow**: standby, three pull stages, loaded with an arrow, loaded with a firework.
 - **Arrow**, **fishing rod** (with line and hook) and **fishing rod cast**, and **stick**.
+
+### Armor
+- **Armor icons** (helmet, chestplate, leggings, boots) for leather, chainmail, iron, gold, diamond and netherite,
+  with one shared silhouette per piece. Helmets have a rim and crest, chestplates a center seam and chest plate
+  line, leggings a belt with buckle and knee plates, boots cuffs and soles. Chainmail always has a ring pattern so
+  it can't be mistaken for iron or stone at a glance.
+- **Worn armor** (`models/armor/*_layer_1` and `_layer_2`, 128x64) for all six materials. They use the vanilla
+  biped layout and vanilla's armor coverage (open face with eye slits, shoulder pads, boots on the lower legs,
+  leggings with a waist band). Each box face is beveled on its own, with a crest on the helmet, a seam on the
+  chestplate, a belt and buckle on the leggings, and soles and cuffs on the boots.
+- **Leather** is drawn in light grey so the game's dye tint shows true team colors (undyed leather stays brown).
+  The laces, brass rivets, buckle and soles are in the untinted `_overlay` textures, for both the items and the worn
+  layers.

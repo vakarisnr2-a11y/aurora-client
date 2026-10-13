@@ -29,6 +29,7 @@ public class BedwarsPackGenerator {
         root = Path.of(args.length > 0 ? args[0] : "src/main/resources/resourcepacks/aurora_bedwars");
         tex = root.resolve("assets/minecraft/textures");
         Weapons.generate();
+        Armor.generate();
         Legacy16.generate();
         System.out.println("Generated " + written + " textures in " + root.toAbsolutePath());
     }
@@ -415,6 +416,13 @@ public class BedwarsPackGenerator {
         static final int[] FEATHER = Col.ramp(0x34343B, 0xA9A9B2, 0xCFCFD6, 0xEDEDF2, 0xFFFFFF, 0xFFFFFF);
         static final int[] RED = Col.ramp(0x3D0A0E, 0x7E1A1F, 0xA82A2E, 0xD23F3F, 0xEE6A62, 0xFF9E92);
         static final int[] FLINT = Col.ramp(0x18181C, 0x323238, 0x46464E, 0x5C5C66, 0x7A7A86, 0x9C9CA8);
+        /** Chainmail: mid steel grey, between stone and iron, always drawn with a ring pattern. */
+        static final int[] CHAIN = Col.ramp(0x17191E, 0x3B3F48, 0x525761, 0x6C717C, 0x8C919B, 0xB3B7BF);
+        /** Light neutral grey for leather: the game tints it with the dye color (undyed leather is brown). */
+        static final int[] LEATHER = Col.ramp(0x3C3C3C, 0x8E8E8E, 0xAAAAAA, 0xC6C6C6, 0xDEDEDE, 0xF4F4F4);
+        /** Untinted leather details (laces, buckles, soles). */
+        static final int[] LACE = Col.ramp(0x1A120C, 0x3A2A1E, 0x4E3828, 0x664A34, 0x816045, 0x9E7A5A);
+        static final int[] BRASS = Col.ramp(0x3A2606, 0x7A5410, 0xA9781E, 0xCFA03A, 0xE8C46A, 0xFBE7A8);
     }
 
     // =====================================================================================================
@@ -754,6 +762,409 @@ public class BedwarsPackGenerator {
             img.set(12, 18, knot);
             img.set(20, 11, knot);
             return img;
+        }
+    }
+
+    // =====================================================================================================
+    // Group 2: armor (items and worn layers)
+    // =====================================================================================================
+
+    /**
+     * Armor icons and the worn armor textures for leather, chainmail, iron, gold, diamond and netherite. Every
+     * material uses the same silhouettes; chainmail adds a ring pattern so it never looks like iron or stone.
+     * Leather is drawn in light grey because the game tints it with the dye color (team colors in Bedwars); the
+     * untinted laces, buckle and soles live in the overlay textures.
+     */
+    static final class Armor {
+        private Armor() {
+        }
+
+        static final String[] ITEMS = {"leather", "chainmail", "iron", "golden", "diamond", "netherite"};
+        static final String[] LAYERS = {"leather", "chainmail", "iron", "gold", "diamond", "netherite"};
+        static final int[][] RAMPS = {Pal.LEATHER, Pal.CHAIN, Pal.IRON, Pal.GOLD, Pal.DIAMOND, Pal.NETHERITE};
+
+        static void generate() throws IOException {
+            for (int i = 0; i < ITEMS.length; i++) {
+                int[] r = RAMPS[i];
+                boolean chain = i == 1;
+                save(helmet(r, chain), "item/" + ITEMS[i] + "_helmet");
+                save(chestplate(r, chain), "item/" + ITEMS[i] + "_chestplate");
+                save(leggings(r, chain), "item/" + ITEMS[i] + "_leggings");
+                save(boots(r, chain), "item/" + ITEMS[i] + "_boots");
+                save(worn(r, i, LAYER_1, false), "models/armor/" + LAYERS[i] + "_layer_1");
+                save(worn(r, i, LAYER_2, false), "models/armor/" + LAYERS[i] + "_layer_2");
+            }
+            save(helmetOverlay(), "item/leather_helmet_overlay");
+            save(chestplateOverlay(), "item/leather_chestplate_overlay");
+            save(leggingsOverlay(), "item/leather_leggings_overlay");
+            save(bootsOverlay(), "item/leather_boots_overlay");
+            save(worn(Pal.LACE, 0, LAYER_1, true), "models/armor/leather_layer_1_overlay");
+            save(worn(Pal.LACE, 0, LAYER_2, true), "models/armor/leather_layer_2_overlay");
+        }
+
+        // ------------------------------------------------------------------ item silhouettes
+
+        static boolean helmetShape(int x, int y) {
+            if (y < 7 || y > 23) return false;
+            int[] half = {6, 8, 9, 10};
+            double w = y - 7 < half.length ? half[y - 7] : 11;
+            if (Math.abs(x + 0.5 - 16) > w) return false;
+            if (y >= 16 && x >= 10 && x <= 21) return false; // open face
+            return !(y == 23 && (x == 5 || x == 9 || x == 22 || x == 26)); // rounded cheek guards
+        }
+
+        static boolean chestShape(int x, int y) {
+            if (y < 5 || y > 26 || x < 4 || x > 27) return false;
+            if ((x == 4 || x == 27) && y == 5) return false;
+            if (y <= 8 && x >= 12 && x <= 19) return false; // neck
+            if (y == 9 && x >= 13 && x <= 18) return false;
+            if (y >= 11 && (x <= 7 || x >= 24)) return false; // arm holes
+            return !(y == 26 && (x == 8 || x == 23));
+        }
+
+        static boolean leggingsShape(int x, int y) {
+            if (y < 5 || y > 26 || x < 7 || x > 24) return false;
+            return !(y >= 12 && x >= 15 && x <= 16);
+        }
+
+        static boolean bootsShape(int x, int y) {
+            boolean left = (x >= 7 && x <= 12 && y >= 12 && y <= 21) || (x >= 4 && x <= 12 && y >= 22 && y <= 26);
+            boolean right = (x >= 19 && x <= 24 && y >= 12 && y <= 21) || (x >= 19 && x <= 27 && y >= 22 && y <= 26);
+            if ((x == 4 || x == 27) && y == 22) return false; // rounded toes
+            return left || right;
+        }
+
+        /** Chainmail ring pattern inside a material region: a lit and a shaded pixel per 2x2 cell. */
+        static void mail(Canvas c, int m) {
+            for (int y = 0; y < c.h; y++) {
+                for (int x = 0; x < c.w; x++) {
+                    if (c.m(x, y) != m || c.s(x, y) != BASE) continue;
+                    if (x % 2 == 0 && y % 2 == 0) c.tone(x, y, LIGHT);
+                    else if (x % 2 == 1 && y % 2 == 1) c.tone(x, y, MID);
+                }
+            }
+        }
+
+        static Img icon(int[] ramp, boolean chain, Pred shape, Detail detail) {
+            Canvas c = new Canvas(32, 32);
+            int m = c.mat(ramp);
+            c.fill(shape, m);
+            c.bevel();
+            if (chain) mail(c, m);
+            detail.apply(c, m);
+            c.outline();
+            return c.img();
+        }
+
+        interface Detail {
+            void apply(Canvas c, int m);
+        }
+
+        static Img helmet(int[] r, boolean chain) {
+            return icon(r, chain, Armor::helmetShape, (c, m) -> {
+                for (int x = 6; x <= 25; x++) {
+                    c.tone(x, 14, MID); // rim
+                    c.tone(x, 15, DARK);
+                }
+                c.tone(15, 8, HIGH); // crest
+                for (int y = 8; y <= 13; y++) c.tone(15, y, LIGHT);
+                c.tone(8, 11, HIGH);
+                c.tone(23, 11, HIGH);
+            });
+        }
+
+        static Img chestplate(int[] r, boolean chain) {
+            return icon(r, chain, Armor::chestShape, (c, m) -> {
+                for (int y = 10; y <= 25; y++) {
+                    c.tone(15, y, LIGHT);
+                    c.tone(16, y, MID);
+                }
+                for (int x = 9; x <= 22; x++) if (x != 15 && x != 16) c.tone(x, 16, MID);
+                for (int y = 6; y <= 10; y++) {
+                    c.tone(8, y, MID);
+                    c.tone(23, y, MID);
+                }
+                c.tone(11, 13, HIGH);
+                c.tone(20, 13, HIGH);
+            });
+        }
+
+        static Img leggings(int[] r, boolean chain) {
+            return icon(r, chain, Armor::leggingsShape, (c, m) -> {
+                for (int x = 8; x <= 23; x++) c.tone(x, 9, DARK); // belt edge
+                for (int y = 6; y <= 8; y++) for (int x = 14; x <= 17; x++) c.tone(x, y, HIGH); // buckle
+                for (int x = 8; x <= 13; x++) c.tone(x, 18, MID); // knee plates
+                for (int x = 18; x <= 23; x++) c.tone(x, 18, MID);
+            });
+        }
+
+        static Img boots(int[] r, boolean chain) {
+            return icon(r, chain, Armor::bootsShape, (c, m) -> {
+                for (int x = 4; x <= 27; x++) {
+                    c.tone(x, 26, DARK); // soles
+                    c.tone(x, 25, MID);
+                }
+                for (int x = 7; x <= 12; x++) c.tone(x, 13, LIGHT); // cuffs
+                for (int x = 19; x <= 24; x++) c.tone(x, 13, LIGHT);
+            });
+        }
+
+        /** Untinted leather details, drawn over the tinted icon. */
+        static Img overlay(int[][] pixels) {
+            Canvas c = new Canvas(32, 32);
+            int lace = c.mat(Pal.LACE), brass = c.mat(Pal.BRASS);
+            for (int[] p : pixels) c.paint(p[0], p[1], p[2] == 0 ? lace : brass, p[3]);
+            return c.img();
+        }
+
+        static Img helmetOverlay() {
+            return overlay(new int[][]{{8, 11, 1, HIGH}, {23, 11, 1, HIGH}, {8, 12, 1, MID}, {23, 12, 1, MID}});
+        }
+
+        static Img chestplateOverlay() {
+            List<int[]> p = new ArrayList<>();
+            for (int y = 10; y <= 14; y += 2) {
+                p.add(new int[]{14, y, 0, BASE});
+                p.add(new int[]{17, y, 0, BASE});
+                p.add(new int[]{15, y + 1, 0, LIGHT});
+                p.add(new int[]{16, y + 1, 0, MID});
+            }
+            return overlay(p.toArray(new int[0][]));
+        }
+
+        static Img leggingsOverlay() {
+            List<int[]> p = new ArrayList<>();
+            for (int y = 6; y <= 8; y++) for (int x = 14; x <= 17; x++) p.add(new int[]{x, y, 1, (x == 14 || y == 6) ? HIGH : (x == 17 || y == 8) ? MID : LIGHT});
+            p.add(new int[]{15, 7, 0, BASE});
+            p.add(new int[]{16, 7, 0, BASE});
+            return overlay(p.toArray(new int[0][]));
+        }
+
+        static Img bootsOverlay() {
+            List<int[]> p = new ArrayList<>();
+            for (int x = 4; x <= 27; x++) {
+                if (!bootsShape(x, 26)) continue;
+                p.add(new int[]{x, 26, 0, DARK});
+                p.add(new int[]{x, 25, 0, MID});
+            }
+            for (int y = 15; y <= 19; y += 2) {
+                p.add(new int[]{9, y, 0, LIGHT});
+                p.add(new int[]{10, y, 0, LIGHT});
+                p.add(new int[]{21, y, 0, LIGHT});
+                p.add(new int[]{22, y, 0, LIGHT});
+            }
+            return overlay(p.toArray(new int[0][]));
+        }
+
+        // ------------------------------------------------------------------ worn armor
+
+        /** Which pixels of the 64x32 biped layout each layer covers (helmet, chestplate and boots / leggings). */
+        static final String[] LAYER_1 = {
+            "........########................................................",
+            "........########................................................",
+            "........########................................................",
+            "........########................................................",
+            "........########................................................",
+            "........########................................................",
+            "........########................................................",
+            "........########................................................",
+            "################################................................",
+            "################################................................",
+            "################################................................",
+            "#########..##..#################................................",
+            "####.......##.......############................................",
+            "........................########................................",
+            "..........................####..................................",
+            "................................................................",
+            "........####................................####................",
+            "........####................................####................",
+            "........####................................####................",
+            "........####................................####................",
+            "................######....########....##################........",
+            "................#######..###############################........",
+            "................########################################........",
+            "................########################################........",
+            "................########################################........",
+            "................########################........................",
+            "########################################........................",
+            "########################################........................",
+            "########################################........................",
+            "################.....######......######.........................",
+            "################......####......................................",
+            "################................................................",
+        };
+
+        static final String[] LAYER_2 = {
+            "................................................................",
+            "................................................................",
+            "................................................................",
+            "................................................................",
+            "................................................................",
+            "................................................................",
+            "................................................................",
+            "................................................................",
+            "................................................................",
+            "................................................................",
+            "................................................................",
+            "................................................................",
+            "................................................................",
+            "................................................................",
+            "................................................................",
+            "................................................................",
+            "....####........................................................",
+            "....####........................................................",
+            "....####........................................................",
+            "....####........................................................",
+            "################................................................",
+            "################................................................",
+            "################................................................",
+            "################................................................",
+            "################................................................",
+            "################................................................",
+            "################................................................",
+            "########################################........................",
+            "########################################........................",
+            "................########################........................",
+            "................########################........................",
+            "................########################........................",
+        };
+
+        /** A box face of the biped model in 64x32 units. */
+        record Face(String part, String side, int u, int v, int w, int h) {
+        }
+
+        static final List<Face> FACES = new ArrayList<>();
+
+        static {
+            box("head", 0, 0, 8, 8, 8);
+            box("body", 16, 16, 8, 12, 4);
+            box("arm", 40, 16, 4, 12, 4);
+            box("leg", 0, 16, 4, 12, 4);
+        }
+
+        static void box(String part, int u, int v, int w, int h, int d) {
+            FACES.add(new Face(part, "top", u + d, v, w, d));
+            FACES.add(new Face(part, "bottom", u + d + w, v, w, d));
+            FACES.add(new Face(part, "right", u, v + d, d, h));
+            FACES.add(new Face(part, "front", u + d, v + d, w, h));
+            FACES.add(new Face(part, "left", u + d + w, v + d, d, h));
+            FACES.add(new Face(part, "back", u + d + w + d, v + d, w, h));
+        }
+
+        /**
+         * Worn armor at 128x64 (2x the vanilla layout). Each box face is its own region, so the bevel lights every
+         * face from the top-left and the covered area's edges get a shaded rim. {@code overlay} draws only the
+         * untinted leather details (laces, buckle, soles).
+         */
+        static Img worn(int[] ramp, int material, String[] layer, boolean overlay) {
+            Canvas c = new Canvas(128, 64);
+            boolean layer2 = layer == LAYER_2;
+            int[] faceMat = new int[FACES.size()];
+            for (int f = 0; f < FACES.size(); f++) faceMat[f] = c.mat(ramp);
+            for (int f = 0; f < FACES.size(); f++) {
+                Face face = FACES.get(f);
+                for (int y = face.v * 2; y < (face.v + face.h) * 2; y++) {
+                    for (int x = face.u * 2; x < (face.u + face.w) * 2; x++) {
+                        if (layer[y / 2].charAt(x / 2) == '#') c.put(x, y, faceMat[f]);
+                    }
+                }
+            }
+            c.bevel();
+            if (material == 1 && !overlay) for (int m : faceMat) mail(c, m);
+            Canvas details = overlay ? new Canvas(128, 64) : c;
+            int detail = overlay ? details.mat(ramp) : -1;
+            int brass = overlay ? details.mat(Pal.BRASS) : -1;
+            for (int f = 0; f < FACES.size(); f++) {
+                Face face = FACES.get(f);
+                int x0 = face.u * 2, y0 = face.v * 2, fw = face.w * 2, fh = face.h * 2;
+                if (!layer2) wornDetails1(c, details, overlay, detail, brass, face, x0, y0, fw, fh, material);
+                else wornDetails2(c, details, overlay, detail, brass, face, x0, y0, fw, fh);
+            }
+            return overlay ? details.img() : c.img();
+        }
+
+        /** Tones a pixel of the armor, or paints it on the overlay canvas. */
+        static void mark(Canvas armor, Canvas details, boolean overlay, int detailMat, int x, int y, int s) {
+            if (armor.m(x, y) < 0) return;
+            if (overlay) details.paint(x, y, detailMat, s);
+            else armor.tone(x, y, s);
+        }
+
+        static void wornDetails1(Canvas c, Canvas d, boolean overlay, int lace, int brass, Face f, int x0, int y0, int fw, int fh, int material) {
+            switch (f.part) {
+                case "head" -> {
+                    if (overlay) return;
+                    if (f.side.equals("top")) for (int y = y0 + 1; y < y0 + fh - 1; y++) {
+                        c.tone(x0 + 7, y, HIGH); // crest
+                        c.tone(x0 + 8, y, LIGHT);
+                    }
+                    if (f.side.equals("front")) for (int x = x0; x < x0 + fw; x++) {
+                        c.tone(x, y0 + 5, DARK); // brow edge above the eye slits
+                        c.tone(x, y0 + 4, MID);
+                    }
+                    if (f.side.equals("right") || f.side.equals("left") || f.side.equals("back")) {
+                        for (int x = x0 + 1; x < x0 + fw - 1; x++) c.tone(x, y0 + 5, MID);
+                        c.tone(x0 + 2, y0 + 2, HIGH);
+                        c.tone(x0 + fw - 3, y0 + 2, HIGH);
+                    }
+                }
+                case "body" -> {
+                    if (f.side.equals("front")) {
+                        for (int y = y0 + 3; y < y0 + 18; y++) {
+                            mark(c, d, overlay, lace, x0 + 7, y, overlay ? BASE : LIGHT);
+                            if (!overlay) c.tone(x0 + 8, y, MID);
+                        }
+                        if (overlay) for (int y = y0 + 4; y < y0 + 16; y += 3) {
+                            mark(c, d, true, lace, x0 + 6, y, LIGHT);
+                            mark(c, d, true, lace, x0 + 9, y, LIGHT);
+                        }
+                        else for (int x = x0 + 1; x < x0 + fw - 1; x++) if (x != x0 + 7 && x != x0 + 8) c.tone(x, y0 + 9, MID);
+                    }
+                    if (f.side.equals("back") && !overlay) for (int y = y0 + 2; y < y0 + 17; y++) c.tone(x0 + 8, y, MID);
+                }
+                case "arm" -> {
+                    if (!overlay && (f.side.equals("right") || f.side.equals("front") || f.side.equals("left") || f.side.equals("back"))) {
+                        for (int x = x0; x < x0 + fw; x++) c.tone(x, y0 + 5, MID); // shoulder plate edge
+                    }
+                }
+                case "leg" -> {
+                    if (f.side.equals("bottom")) {
+                        for (int y = y0; y < y0 + fh; y++) for (int x = x0; x < x0 + fw; x++) mark(c, d, overlay, lace, x, y, DARK);
+                    } else if (!f.side.equals("top")) {
+                        for (int x = x0; x < x0 + fw; x++) {
+                            mark(c, d, overlay, lace, x, y0 + fh - 1, DARK); // sole
+                            mark(c, d, overlay, lace, x, y0 + fh - 2, MID);
+                        }
+                        if (!overlay) for (int x = x0; x < x0 + fw; x++) c.tone(x, y0 + 12, LIGHT); // cuff
+                    }
+                }
+                default -> {
+                }
+            }
+        }
+
+        static void wornDetails2(Canvas c, Canvas d, boolean overlay, int lace, int brass, Face f, int x0, int y0, int fw, int fh) {
+            if (f.part.equals("body") && !f.side.equals("top") && !f.side.equals("bottom")) {
+                // Belt: the top rows of the leggings' waist.
+                for (int x = x0; x < x0 + fw; x++) {
+                    if (!overlay) {
+                        c.tone(x, y0 + 14, LIGHT);
+                        c.tone(x, y0 + 16, DARK);
+                    }
+                }
+                if (f.side.equals("front")) {
+                    for (int y = y0 + 14; y <= y0 + 16; y++) {
+                        for (int x = x0 + 6; x <= x0 + 9; x++) {
+                            if (overlay) mark(c, d, true, brass, x, y, x == x0 + 6 || y == y0 + 14 ? HIGH : LIGHT);
+                            else c.tone(x, y, HIGH);
+                        }
+                    }
+                }
+            }
+            if (f.part.equals("leg") && !overlay && !f.side.equals("top") && !f.side.equals("bottom")) {
+                for (int x = x0; x < x0 + fw; x++) c.tone(x, y0 + 9, MID); // knee plate
+                for (int x = x0; x < x0 + fw; x++) c.tone(x, y0 + 10, LIGHT);
+            }
         }
     }
 
