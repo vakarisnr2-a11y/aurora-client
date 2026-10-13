@@ -6,8 +6,10 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Stream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -45,6 +47,7 @@ public class BedwarsPackGenerator {
         deleteTree(root.resolve("assets"));
         Weapons.generate();
         Armor.generate();
+        Items.generate();
         System.out.println("Generated " + written + " textures in " + root.toAbsolutePath());
     }
 
@@ -346,6 +349,260 @@ public class BedwarsPackGenerator {
                 save(v("models/armor/leather_layer_" + l), "models/armor/leather_layer_" + l);
                 graded("models/armor/leather_layer_" + l + "_overlay");
             }
+        }
+    }
+    // =====================================================================================================
+    // Block design: tileable height maps, one light, eight-step ramps
+    // =====================================================================================================
+
+    /**
+     * Blocks are designed here rather than edited from vanilla. A block is a height map (wrapping at the edges so it
+     * tiles) lit from the top-left; the brightness picks one of seven shades from the block's ramp, so surfaces are
+     * smooth and clean. Most blocks are framed by a one-pixel bevel so block edges stay visible while bridging.
+     */
+    static final class Blocks {
+        private Blocks() {
+        }
+
+        static final double LX, LY, LZ;
+
+        static {
+            double l = Math.sqrt(1 + 1.15 * 1.15 + 1.35 * 1.35);
+            LX = -1 / l;
+            LY = -1.15 / l;
+            LZ = 1.35 / l;
+        }
+
+        /**
+         * A ramp of 8 colors around {@code base} (index 4): 0 is a deep outline tone, 1-3 shadows drifting towards
+         * violet, 5-7 highlights blending towards a cool white.
+         */
+        static int[] ramp(int base) {
+            float[] hsv = java.awt.Color.RGBtoHSB(Col.r(base), Col.g(base), Col.b(base), null);
+            float h = hsv[0], sat = hsv[1], val = hsv[2];
+            int[] r = new int[8];
+            r[0] = hsvRgb(toward(h, 0.72f, 0.07f), Math.min(1, sat * 1.1f + 0.15f), val * 0.24f + 0.03f);
+            float[] dv = {0.50f, 0.66f, 0.83f};
+            for (int i = 0; i < 3; i++) r[1 + i] = hsvRgb(toward(h, 0.72f, 0.05f - i * 0.015f), Math.min(1, sat * (1.1f - i * 0.03f) + 0.04f), val * dv[i] + 0.02f);
+            r[4] = 0xFF000000 | base;
+            double[] tw = {0.16, 0.34, 0.56};
+            for (int i = 0; i < 3; i++) r[5 + i] = Col.mix(0xFF000000 | base, 0xFFF0FBFF, tw[i]);
+            return r;
+        }
+
+        static int hsvRgb(float h, float s, float v) {
+            return 0xFF000000 | (java.awt.Color.HSBtoRGB(h - (float) Math.floor(h), Math.max(0, Math.min(1, s)), Math.max(0, Math.min(1, v))) & 0xFFFFFF);
+        }
+
+        static float toward(float h, float target, float amount) {
+            float d = target - h;
+            if (d > 0.5f) d -= 1;
+            if (d < -0.5f) d += 1;
+            return h + Math.max(-amount, Math.min(amount, d));
+        }
+
+        /** Shade 1..7 from a surface normal; {@code contrast} scales how much the slope matters. */
+        static int level(double nx, double ny, double nz, double contrast, double offset) {
+            double diff = nx * LX + ny * LY + nz * LZ;
+            double v = 0.5 + (diff - LZ) * 1.6 * contrast + offset;
+            return 1 + (int) Math.max(0, Math.min(6, Math.round(v * 6)));
+        }
+
+        /**
+         * Lights a wrapping height map. {@code ramps[rampOf[i]]} colors pixel i; {@code offset[i]} brightens or
+         * darkens it (patterns that are not geometry).
+         */
+        static Img light(int w, int h, double[] height, int[][] ramps, int[] rampOf, double[] offset, double contrast) {
+            Img img = new Img(w, h);
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    double hl = height[y * w + Math.floorMod(x - 1, w)], hr = height[y * w + Math.floorMod(x + 1, w)];
+                    double hu = height[Math.floorMod(y - 1, h) * w + x], hd = height[Math.floorMod(y + 1, h) * w + x];
+                    double nx = -(hr - hl) / 2, ny = -(hd - hu) / 2, nz = 1, len = Math.sqrt(nx * nx + ny * ny + nz * nz);
+                    int i = y * w + x;
+                    int s = level(nx / len, ny / len, nz / len, contrast, offset == null ? 0 : offset[i]);
+                    img.set(x, y, ramps[rampOf == null ? 0 : rampOf[i]][s]);
+                }
+            }
+            return img;
+        }
+
+        static Img light(double[] height, int[] ramp, double[] offset, double contrast) {
+            return light(16, 16, height, new int[][]{ramp}, null, offset, contrast);
+        }
+
+        /** Height map with a sunken one-pixel groove on the bottom and right edges (a framed tile). */
+        static double[] framed(double depth) {
+            double[] hgt = new double[256];
+            for (int y = 0; y < 16; y++) for (int x = 0; x < 16; x++) hgt[y * 16 + x] = (x == 15 || y == 15) ? -depth : 0;
+            return hgt;
+        }
+
+        static double hash(int x, int y, int seed) {
+            long h = x * 374761393L + y * 668265263L + seed * 2147483647L;
+            h = (h ^ (h >>> 13)) * 1274126177L;
+            h ^= h >>> 16;
+            return (h & 0xFFFFFF) / (double) 0x1000000;
+        }
+
+        /** Shortest signed distance on a 16 px torus. */
+        static double wrap(double d) {
+            while (d > 8) d -= 16;
+            while (d < -8) d += 16;
+            return d;
+        }
+
+        /** Sparse speckle offsets: a few pixels a step lighter or darker. */
+        static double[] speckle(int seed, double light, double dark) {
+            double[] o = new double[256];
+            for (int i = 0; i < 256; i++) {
+                double n = hash(i % 16, i / 16, seed);
+                o[i] = n < light ? 0.17 : n > 1 - dark ? -0.17 : 0;
+            }
+            return o;
+        }
+    }
+
+    // =====================================================================================================
+    // Group 3: resources and Bedwars items
+    // =====================================================================================================
+
+    /**
+     * Resources and shop items keep vanilla's art with the grade, so they are recognized at a glance. TNT, sponges
+     * and the ladder are blocks and get Aurora designs.
+     */
+    static final class Items {
+        private Items() {
+        }
+
+        static void generate() throws IOException {
+            for (String s : new String[]{"iron_ingot", "gold_ingot", "diamond", "emerald", "netherite_ingot", "netherite_scrap",
+                "iron_nugget", "gold_nugget", "fire_charge", "ender_pearl", "golden_apple", "snowball", "egg", "bucket",
+                "water_bucket", "milk_bucket", "lava_bucket", "potion", "splash_potion", "lingering_potion", "glass_bottle",
+                "experience_bottle", "totem_of_undying"}) {
+                graded("item/" + s);
+            }
+            save(v("item/potion_overlay"), "item/potion_overlay"); // tinted by the game: keep it neutral
+            for (int i = 0; i < 32; i++) graded(String.format("item/compass_%02d", i));
+            save(tntSide(), "block/tnt_side");
+            save(tntEnd(true), "block/tnt_top");
+            save(tntEnd(false), "block/tnt_bottom");
+            save(sponge(false), "block/sponge");
+            save(sponge(true), "block/wet_sponge");
+            save(ladder(), "block/ladder");
+        }
+
+        static final int[] TNT_RED = Blocks.ramp(0xC8282E);
+        static final int[] NIGHT = Blocks.ramp(0x1C2033);
+        static final int[] VIOLET = Blocks.ramp(0x8B5CF6);
+        static final int[] PAPER = Blocks.ramp(0xE8EAF2);
+
+        /** 3x5 letters. */
+        static final String[] T = {"###", ".#.", ".#.", ".#.", ".#."};
+        static final String[] N = {"#.#", "###", "###", "#.#", "#.#"};
+
+        /**
+         * Aurora TNT: three round dynamite sticks with a dark night-blue label wrapped around them, a violet rim on
+         * the label and the letters in white.
+         */
+        static Img tntSide() {
+            double[] hgt = new double[256];
+            int[] rampOf = new int[256];
+            double[] off = new double[256];
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    int i = y * 16 + x;
+                    double u = (x % 5 + 0.5) / 5.0 * 2 - 1; // across one stick, -1..1 (sticks are 5 px; the 16th column is a seam)
+                    hgt[i] = x == 15 ? -1 : Math.sqrt(Math.max(0, 1 - u * u)) * 2.2;
+                    if (y >= 5 && y <= 10) {
+                        rampOf[i] = (y == 5 || y == 10) ? 2 : 1;
+                        hgt[i] = 2.6; // the label sits on top of the sticks
+                        if (y == 5) hgt[i] = 2.3;
+                    }
+                }
+            }
+            Img img = Blocks.light(16, 16, hgt, new int[][]{TNT_RED, NIGHT, VIOLET}, rampOf, off, 0.9);
+            String[][] letters = {T, N, T};
+            for (int l = 0; l < 3; l++) {
+                for (int yy = 0; yy < 5; yy++) {
+                    for (int xx = 0; xx < 3; xx++) {
+                        if (letters[l][yy].charAt(xx) == '#') img.set(2 + l * 4 + xx, 6 + yy - 0 + (yy >= 4 ? 0 : 0), PAPER[yy == 0 ? 6 : 5]);
+                    }
+                }
+            }
+            return img;
+        }
+
+        /** Stick ends in a 2x2 bundle; the top has a fuse with a teal spark. */
+        static Img tntEnd(boolean fuse) {
+            double[] hgt = new double[256];
+            int[] rampOf = new int[256];
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    double dx = (x % 8) + 0.5 - 4, dy = (y % 8) + 0.5 - 4, d = Math.hypot(dx, dy);
+                    hgt[y * 16 + x] = d <= 3.4 ? (d <= 1.4 ? 0.6 : 1.4) : -0.8;
+                    rampOf[y * 16 + x] = d <= 3.4 ? 0 : 1;
+                }
+            }
+            Img img = Blocks.light(16, 16, hgt, new int[][]{TNT_RED, NIGHT}, rampOf, null, 0.9);
+            if (fuse) {
+                int[] wick = Blocks.ramp(0x2A2A33);
+                img.set(7, 7, wick[3]);
+                img.set(8, 7, wick[4]);
+                img.set(7, 8, wick[2]);
+                img.set(8, 8, wick[3]);
+                img.set(8, 6, 0xFF7CF5E8); // spark
+                img.set(9, 5, 0xFFCFFFF8);
+            }
+            return img;
+        }
+
+        /**
+         * Smooth sponge with neat 2x2 pores on an offset grid: each pore is shaded inside its top-left and has a lit
+         * lower-right rim. The wet sponge is darker and olive, with glossy droplets.
+         */
+        static Img sponge(boolean wet) {
+            int[] r = Blocks.ramp(wet ? 0xA9A23A : 0xE3C54A);
+            Img img = new Img(16, 16);
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    double n = Blocks.hash(x, y, wet ? 9 : 8);
+                    img.set(x, y, r[n < 0.08 ? 5 : n > 0.95 ? 3 : 4]);
+                }
+            }
+            for (int py = 0; py < 4; py++) {
+                for (int px = 0; px < 4; px++) {
+                    int x0 = px * 4 + (py % 2 == 0 ? 0 : 2) + 1, y0 = py * 4 + 1;
+                    img.set(x0 % 16, y0, r[1]);
+                    img.set((x0 + 1) % 16, y0, r[2]);
+                    img.set(x0 % 16, y0 + 1, r[2]);
+                    img.set((x0 + 1) % 16, y0 + 1, r[3]);
+                    img.set((x0 + 2) % 16, y0 + 1, r[6]); // lit rim
+                    img.set((x0 + 1) % 16, y0 + 2, r[6]);
+                    img.set((x0 + 2) % 16, y0 + 2, r[5]);
+                }
+            }
+            if (wet) {
+                img.set(6, 10, 0xFFE8FBFF);
+                img.set(13, 6, 0xFFE8FBFF);
+                img.set(2, 14, 0xFFD8F4FF);
+            }
+            return img;
+        }
+
+        /** Dark wooden rails with violet-steel brackets and four rungs. */
+        static Img ladder() {
+            Img img = new Img(16, 16);
+            int[] wood = Blocks.ramp(0x7A5132), steel = Blocks.ramp(0x6D5BA8);
+            for (int y = 0; y < 16; y++) {
+                for (int x : new int[]{1, 2, 13, 14}) img.set(x, y, wood[x == 1 || x == 13 ? 5 : 3]);
+                if (y % 4 == 1 || y % 4 == 2) {
+                    for (int x = 3; x <= 12; x++) img.set(x, y, wood[y % 4 == 1 ? 5 : 2]);
+                    img.set(2, y, steel[y % 4 == 1 ? 6 : 4]);
+                    img.set(13, y, steel[y % 4 == 1 ? 5 : 3]);
+                }
+            }
+            return img;
         }
     }
 }

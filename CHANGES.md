@@ -387,3 +387,15 @@ the game tints itself (leather, potion liquid) are left neutral so dyes and effe
   netherite, all with the Aurora grade.
 - Leather keeps vanilla's neutral base so the game's dye tint shows true team colors. Its untinted overlays
   (laces, trims) get the grade.
+
+### Resources and Bedwars items
+- Iron, gold and netherite ingots, netherite scrap, nuggets, diamond, emerald, fire charge, ender pearl, golden
+  apple (also the enchanted one), snowball (Bedbug), egg (Bridge Egg), buckets (empty, water, milk, lava),
+  potion, splash and lingering bottles, glass bottle, bottle o' enchanting, totem and all 32 compass frames, with
+  the Aurora grade. The potion liquid stays neutral, so Speed, Jump Boost, Invisibility and the rest keep their own
+  colors.
+- **TNT** has its own design: three round dynamite sticks wrapped in a night-blue label with violet trim and white
+  "TNT" letters. The top and bottom show the stick ends, and the top has a fuse with a teal spark. Primed TNT uses
+  these textures.
+- **Sponge** and **wet sponge**: smooth with neat shaded pores. The wet one is olive with glossy droplets.
+- **Ladder**: dark wooden rails and rungs with violet-steel brackets.
