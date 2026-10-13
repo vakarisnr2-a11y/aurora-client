@@ -50,6 +50,7 @@ public class BedwarsPackGenerator {
         Items.generate();
         TeamBlocks.generate();
         World.generate();
+        Gui.generate();
         System.out.println("Generated " + written + " textures in " + root.toAbsolutePath());
     }
 
@@ -1418,6 +1419,160 @@ public class BedwarsPackGenerator {
             int s = y % 3 == 2 ? 3 : (y % 3 == 0 ? 5 : 4);
             if (Blocks.hash(x / 3, y, 401) < 0.15) s--;
             return body[s];
+        }
+    }
+    // =====================================================================================================
+    // Group 6: GUI
+    // =====================================================================================================
+
+    /**
+     * The Aurora GUI: inventory and chest/shop screens in the client's night palette with a violet-to-teal accent,
+     * a matching hotbar and selection frame, an aurora XP bar, a clean crosshair and graded hearts, hunger and armor.
+     * Container layouts come from vanilla's textures (only their colors are remapped), so every slot lines up. The
+     * mod draws the titles of these two screens in a light color while the pack is active.
+     */
+    static final class Gui {
+        private Gui() {
+        }
+
+        static final int PANEL = 0xFF1B1F2E, EDGE_LIGHT = 0xFF3B4160, EDGE_DARK = 0xFF0E1019, SLOT = 0xFF11131D,
+            SLOT_DARK = 0xFF07080D, OUTLINE = 0xFF07080C;
+        static final int VIOLET = 0xFF8B5CF6, TEAL = 0xFF2DD4BF;
+
+        static void generate() throws IOException {
+            save(container(v("gui/container/inventory"), new int[]{1}), "gui/container/inventory");
+            save(container(v("gui/container/generic_54"), new int[]{1}), "gui/container/generic_54");
+            save(hotbar(v("gui/sprites/hud/hotbar")), "gui/sprites/hud/hotbar");
+            save(hotbar(v("gui/sprites/hud/hotbar_offhand_left")), "gui/sprites/hud/hotbar_offhand_left");
+            save(hotbar(v("gui/sprites/hud/hotbar_offhand_right")), "gui/sprites/hud/hotbar_offhand_right");
+            save(selection(), "gui/sprites/hud/hotbar_selection");
+            save(xpBar(v("gui/sprites/hud/experience_bar_progress")), "gui/sprites/hud/experience_bar_progress");
+            save(hotbar(v("gui/sprites/hud/experience_bar_background")), "gui/sprites/hud/experience_bar_background");
+            save(crosshair(), "gui/sprites/hud/crosshair");
+            for (String state : new String[]{"full", "half", "empty"}) {
+                graded("gui/sprites/hud/food_" + state);
+                graded("gui/sprites/hud/food_" + state + "_hunger");
+                graded("gui/sprites/hud/armor_" + state);
+            }
+            for (String kind : new String[]{"", "absorbing_", "frozen_", "poisoned_", "withered_", "hardcore_", "absorbing_hardcore_",
+                "frozen_hardcore_", "poisoned_hardcore_", "withered_hardcore_"}) {
+                for (String part : new String[]{"full", "half"}) {
+                    graded("gui/sprites/hud/heart/" + kind + part);
+                    graded("gui/sprites/hud/heart/" + kind + part + "_blinking");
+                }
+            }
+            for (String c : new String[]{"container", "container_blinking", "container_hardcore", "container_hardcore_blinking",
+                "vehicle_container", "vehicle_full", "vehicle_half"}) {
+                graded("gui/sprites/hud/heart/" + c);
+            }
+        }
+
+        /** Gradient from violet (left) to teal (right). */
+        static int accent(double t) {
+            return Col.mix(VIOLET, TEAL, Math.max(0, Math.min(1, t)));
+        }
+
+        /**
+         * Remaps vanilla's six container greys to the night palette and turns each panel's top highlight row
+         * ({@code accentRows}) into the violet-to-teal accent.
+         */
+        static Img container(Img src, int[] accentRows) {
+            Img out = new Img(src.w, src.h);
+            for (int y = 0; y < src.h; y++) {
+                for (int x = 0; x < src.w; x++) {
+                    int c = src.get(x, y);
+                    if (Col.a(c) == 0) continue;
+                    int rgb = c & 0xFFFFFF;
+                    int n = switch (rgb) {
+                        case 0xC6C6C6 -> PANEL;
+                        case 0xFFFFFF -> EDGE_LIGHT;
+                        case 0x555555 -> EDGE_DARK;
+                        case 0x8B8B8B -> SLOT;
+                        case 0x373737 -> SLOT_DARK;
+                        case 0x000000 -> OUTLINE;
+                        default -> Col.mix(SLOT_DARK, EDGE_LIGHT, Col.lum(c));
+                    };
+                    out.set(x, y, n);
+                }
+            }
+            for (int row : accentRows) {
+                int from = -1, to = -1;
+                for (int x = 0; x < src.w; x++) {
+                    if ((src.get(x, row) & 0xFFFFFF) == 0xFFFFFF && Col.a(src.get(x, row)) > 0) {
+                        if (from < 0) from = x;
+                        to = x;
+                    }
+                }
+                for (int x = from; x >= 0 && x <= to; x++) {
+                    if ((src.get(x, row) & 0xFFFFFF) == 0xFFFFFF) out.set(x, row, accent((x - from) / (double) Math.max(1, to - from)));
+                }
+            }
+            return out;
+        }
+
+        /** Hotbar pieces: frames in night blue-violet greys, slots translucent night. */
+        static Img hotbar(Img src) {
+            Img out = new Img(src.w, src.h);
+            for (int i = 0; i < src.px.length; i++) {
+                int c = src.px[i];
+                int a = Col.a(c);
+                if (a == 0) continue;
+                double l = Col.lum(c);
+                int n;
+                if (a < 250) n = Col.alpha(Col.mix(0xFF0B0D16, 0xFF1C2033, l * 3), Math.max(a, 200));
+                else if (l < 0.05) n = OUTLINE;
+                else n = Col.mix(0xFF1E2236, 0xFF5A5F86, Math.min(1, l * 1.3));
+                out.px[i] = n;
+            }
+            return out;
+        }
+
+        /** The selected slot: a two-pixel frame with a violet-to-teal gradient and bright corners. */
+        static Img selection() {
+            Img img = new Img(24, 23);
+            for (int y = 0; y < 23; y++) {
+                for (int x = 0; x < 24; x++) {
+                    int ring = Math.min(Math.min(x, y), Math.min(23 - x, 22 - y));
+                    double t = (x + y) / 45.0;
+                    if (ring == 0) img.set(x, y, OUTLINE);
+                    else if (ring <= 2) {
+                        int c = accent(t);
+                        if (ring == 1) c = Col.mix(c, 0xFFFFFFFF, 0.25);
+                        img.set(x, y, c);
+                    } else if (ring == 3) img.set(x, y, 0x90050610);
+                }
+            }
+            for (int[] corner : new int[][]{{1, 1}, {22, 1}, {1, 21}, {22, 21}}) img.set(corner[0], corner[1], 0xFFFFFFFF);
+            return img;
+        }
+
+        /** The XP bar fill as an aurora gradient, keeping vanilla's shading. */
+        static Img xpBar(Img src) {
+            Img out = new Img(src.w, src.h);
+            for (int y = 0; y < src.h; y++) {
+                for (int x = 0; x < src.w; x++) {
+                    int c = src.get(x, y);
+                    if (Col.a(c) == 0) continue;
+                    double l = Col.lum(c);
+                    int hue = Col.mix(TEAL, VIOLET, x / (double) (src.w - 1));
+                    out.set(x, y, Col.alpha(Col.mix(0xFF000000, hue, Math.min(1, l * 1.4)), Col.a(c)));
+                }
+            }
+            return out;
+        }
+
+        /** A clean crosshair: four short arms around a gap and a centre dot (the game inverts it against the scene). */
+        static Img crosshair() {
+            Img img = new Img(15, 15);
+            int w = 0xFFFFFFFF;
+            for (int i = 0; i < 4; i++) {
+                img.set(7, 1 + i, w);
+                img.set(7, 10 + i, w);
+                img.set(1 + i, 7, w);
+                img.set(10 + i, 7, w);
+            }
+            img.set(7, 7, w);
+            return img;
         }
     }
 }

@@ -432,3 +432,15 @@ Drawn from scratch with the same light and clean surfaces. Slabs and stairs use 
   packed ice and glowstone.
 - **Chests** (single and double halves), **trapped chests** (red bands) and the **ender chest** (dark violet with
   teal glowing bands). Each has boards framed by colored metal bands, a dark inside and a glowing latch.
+
+### GUI
+- **Inventory** and **chest** screens (chests, ender chest and the Bedwars shop) in the client's night palette:
+  dark navy panels, deeper slots, soft edges and a violet-to-teal accent line along the top. Only vanilla's colors
+  are remapped, so every slot lines up exactly. While the pack is active the mod draws these screens' titles in a
+  light color (`HandledScreenMixin`, new `InventoryScreenMixin`, constant `0x404040` in `drawForeground`). Other
+  screens keep vanilla's colors.
+- **Hotbar** (and offhand slots) in night blue with translucent slots. The **selected slot** gets a two-pixel
+  violet-to-teal gradient frame with bright corners.
+- **XP bar** fill as a teal-to-violet gradient. **Crosshair**: four short arms around a gap and a center dot.
+- **Hearts** (every kind: normal, absorbing, frozen, poisoned, withered, hardcore, blinking, mount), **hunger** and
+  **armor** icons with the Aurora grade.

@@ -5,6 +5,9 @@ import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.ingame.GenericContainerScreen;
+import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.resource.ResourcePackManager;
 import net.minecraft.resource.ResourcePackProfile;
 import net.minecraft.text.Text;
@@ -16,6 +19,10 @@ import net.minecraft.util.Identifier;
  */
 public final class BedwarsPack {
     public static final Identifier ID = Identifier.of(AuroraClient.MOD_ID, "aurora_bedwars");
+    /** Vanilla's container title color, and the light color used on the pack's dark container screens. */
+    public static final int VANILLA_TITLE = 0x404040, THEMED_TITLE = 0xE6E8F0;
+
+    private static String profileId;
 
     private BedwarsPack() {
     }
@@ -35,6 +42,24 @@ public final class BedwarsPack {
             if (profile.getId().contains("aurora_bedwars")) return profile.getId();
         }
         return null;
+    }
+
+    /** Whether the pack is currently enabled in the resource pack list. */
+    public static boolean isActive() {
+        MinecraftClient mc = MinecraftClient.getInstance();
+        if (mc == null) return false;
+        if (profileId == null) profileId = findProfileId();
+        return profileId != null && mc.getResourcePackManager().getEnabledIds().contains(profileId);
+    }
+
+    /**
+     * Title color for a container screen: the pack draws the inventory and chest screens dark, so their titles
+     * switch to a light color while it is active. Other screens keep their vanilla look and color.
+     */
+    public static int titleColor(Screen screen, int color) {
+        if (color != VANILLA_TITLE) return color;
+        boolean themed = screen instanceof GenericContainerScreen || screen instanceof InventoryScreen;
+        return themed && isActive() ? THEMED_TITLE : color;
     }
 
     /** Enables or disables the pack and reloads resources if the selection changed. */
