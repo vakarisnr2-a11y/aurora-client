@@ -42,7 +42,7 @@ public final class CrosshairEditorScreen extends Screen {
     }
 
     private float cell() {
-        return Math.max(6, Math.min(12, (height - 80) / (float) PixelPattern.SIZE));
+        return Math.max(6, Math.min(12, (height - 70) / (float) PixelPattern.SIZE));
     }
 
     private float gridSize() {
@@ -50,11 +50,12 @@ public final class CrosshairEditorScreen extends Screen {
     }
 
     private float panelW() {
-        return gridSize() + 150;
+        return gridSize() + SIDE_W + 36;
     }
 
+    /** Tall enough for the grid and for the side column (preview, five button rows). */
     private float panelH() {
-        return gridSize() + 44;
+        return Math.max(gridSize(), 64 + 6 + 18 * 5 + BTN_H) + 46;
     }
 
     private float panelX() {
@@ -77,7 +78,7 @@ public final class CrosshairEditorScreen extends Screen {
         return gridX() + gridSize() + 12;
     }
 
-    private static final float SIDE_W = 114;
+    private static final float SIDE_W = 126;
 
     private void save() {
         crosshair.getPixels().set(PixelPattern.encode(pixels));
@@ -115,8 +116,8 @@ public final class CrosshairEditorScreen extends Screen {
 
     private String buttonLabel(int i) {
         return switch (i) {
-            case 0 -> "Mirror ↔ " + (mirrorX ? "On" : "Off");
-            case 1 -> "Mirror ↕ " + (mirrorY ? "On" : "Off");
+            case 0 -> "Mirror ↔";
+            case 1 -> "Mirror ↕";
             case 2 -> "Clear";
             case 3 -> "Invert";
             case 10 -> crosshair.isEnabled() && crosshair.isPixelStyle() ? "Pixel style active" : "Use pixel style";

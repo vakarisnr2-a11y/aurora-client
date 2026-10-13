@@ -22,4 +22,14 @@ public interface ChatHudAccessor {
     /** Rebuilds the wrapped lines from the messages. */
     @Invoker("refresh")
     void aurora$refresh();
+
+    @Invoker("toChatLineX")
+    double aurora$toChatLineX(double x);
+
+    @Invoker("toChatLineY")
+    double aurora$toChatLineY(double y);
+
+    /** Index into the wrapped lines under a chat-space position, or -1 (accounts for scrolling). */
+    @Invoker("getMessageLineIndex")
+    int aurora$getMessageLineIndex(double chatLineX, double chatLineY);
 }

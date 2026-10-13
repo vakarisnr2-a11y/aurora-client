@@ -4,7 +4,9 @@ import dev.aurora.client.AuroraClient;
 import dev.aurora.client.module.modules.utility.PotionEffects;
 import dev.aurora.client.module.modules.visuals.Crosshair;
 import dev.aurora.client.module.modules.visuals.HotbarStyle;
+import dev.aurora.client.module.modules.visuals.SaturationOverlay;
 import dev.aurora.client.module.modules.visuals.ScoreboardHud;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.render.RenderTickCounter;
@@ -45,5 +47,12 @@ public abstract class InGameHudMixin {
     private void aurora$scoreboard(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
         ScoreboardHud scoreboard = AuroraClient.module(ScoreboardHud.class);
         if (scoreboard != null && scoreboard.isEnabled()) ci.cancel();
+    }
+
+    /** After the hunger bar: icon i is drawn at (right - i * 8 - 9, top) (checked with javap against 1.21.1). */
+    @Inject(method = "renderFood", at = @At("TAIL"))
+    private void aurora$saturation(DrawContext context, PlayerEntity player, int top, int right, CallbackInfo ci) {
+        SaturationOverlay overlay = AuroraClient.module(SaturationOverlay.class);
+        if (overlay != null && overlay.isEnabled()) overlay.render(context, player, top, right);
     }
 }

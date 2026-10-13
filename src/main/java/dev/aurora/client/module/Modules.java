@@ -63,6 +63,16 @@ import dev.aurora.client.module.modules.utility.UnfocusedFps;
 import dev.aurora.client.module.modules.world.EntityDistance;
 import dev.aurora.client.module.modules.world.LowEndMode;
 import dev.aurora.client.module.modules.player.ItemLock;
+import dev.aurora.client.module.modules.misc.ChatMentions;
+import dev.aurora.client.module.modules.misc.ChatCopy;
+import dev.aurora.client.module.modules.misc.ChatSearch;
+import dev.aurora.client.module.modules.utility.BetterTab;
+import dev.aurora.client.module.modules.utility.BetterTooltips;
+import dev.aurora.client.module.modules.utility.ArmorWarning;
+import dev.aurora.client.module.modules.visuals.SaturationOverlay;
+import dev.aurora.client.module.modules.visuals.LowHealthWarning;
+import dev.aurora.client.module.modules.visuals.AuroraMenu;
+import dev.aurora.client.module.modules.combat.HitSounds;
 import java.util.List;
 
 /** The full list of built-in modules, in GUI order within each category. */
@@ -74,11 +84,12 @@ public final class Modules {
         return List.of(
             // Combat
             new TargetHud(), new ComboCounter(), new ReachDisplay(), new DamageNumbers(), new HitParticles(), new Hitboxes(),
-            new ArrowCounter(), new BowCharge(), new TotemPops(),
+            new ArrowCounter(), new BowCharge(), new TotemPops(), new HitSounds(),
             // Visuals
             new Fullbright(), new Crosshair(), new Nametags(), new GearTags(), new HitColor(), new NoHurtCam(), new Perspective(),
             new LowFire(), new BedwarsPackModule(), new ModuleList(), new Watermark(), new Keystrokes(), new OldAnimations(),
-            new HotbarStyle(), new HudTheme(), new ScoreboardHud(), new CrosshairEditor(),
+            new HotbarStyle(), new HudTheme(), new ScoreboardHud(), new CrosshairEditor(), new SaturationOverlay(),
+            new LowHealthWarning(), new AuroraMenu(),
             // Movement
             new Sprint(), new SafeWalk(), new Step(), new Freelook(), new CameraSmoothing(), new MovementHud(),
             // Player
@@ -89,8 +100,10 @@ public final class Modules {
             // Utility
             new FpsDisplay(), new Coordinates(), new PingDisplay(), new TabPing(), new CpsDisplay(), new ArmorStatus(),
             new PotionEffects(), new DurabilityDisplay(), new ResourceCounter(), new Zoom(), new Screenshot(), new UnfocusedFps(),
+            new BetterTab(), new BetterTooltips(), new ArmorWarning(),
             // Misc
-            new ClickGui(), new HudEditor(), new Notifications(), new ChatAlerts(), new BetterChat()
+            new ClickGui(), new HudEditor(), new Notifications(), new ChatAlerts(), new BetterChat(), new ChatMentions(),
+            new ChatCopy(), new ChatSearch()
         );
     }
 }

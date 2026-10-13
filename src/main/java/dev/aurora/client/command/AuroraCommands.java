@@ -14,6 +14,7 @@ import dev.aurora.client.gui.ClickGuiScreen;
 import dev.aurora.client.gui.HudEditorScreen;
 import dev.aurora.client.module.Module;
 import dev.aurora.client.module.modules.misc.ClickGui;
+import dev.aurora.client.module.modules.utility.Screenshot;
 import dev.aurora.client.module.modules.visuals.HudTheme;
 import dev.aurora.client.setting.KeybindSetting;
 import dev.aurora.client.util.KeyNames;
@@ -177,6 +178,13 @@ public final class AuroraCommands {
                         return error(ctx.getSource(), "No valid layout named " + name);
                     }
                 }))))
+            .then(literal("screenshot").then(literal("copy").then(argument("file", StringArgumentType.greedyString()).executes(ctx -> {
+                Path dir = MinecraftClient.getInstance().runDirectory.toPath().resolve("screenshots");
+                Path file = dir.resolve(StringArgumentType.getString(ctx, "file")).normalize();
+                if (!file.startsWith(dir) || !Files.isRegularFile(file)) return error(ctx.getSource(), "Screenshot not found");
+                Screenshot.copyImage(file);
+                return 1;
+            }))))
             .then(literal("profile")
                 .then(literal("list").executes(ctx -> {
                     ConfigManager cfg = AuroraClient.config();

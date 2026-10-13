@@ -87,6 +87,39 @@ public final class Render2D {
         end(b);
     }
 
+    private static final float[] WAVE_Y = new float[257];
+
+    /**
+     * A soft horizontal ribbon (aurora band) across {@code width}: a sine wave around {@code baseY} that fades out
+     * {@code thickness} above and {@code thickness * 0.6} below its bright line. Two draw calls.
+     */
+    public static void wave(DrawContext ctx, float width, float baseY, float amplitude, float thickness, float wavelength,
+                            float phase, int color, int segments) {
+        int n = Math.max(2, Math.min(256, segments));
+        for (int i = 0; i <= n; i++) {
+            double x = width * i / (double) n;
+            WAVE_Y[i] = baseY + amplitude * (float) (Math.sin(x / wavelength * Math.PI * 2 + phase)
+                + 0.45 * Math.sin(x / wavelength * Math.PI * 0.73 + phase * 1.7));
+        }
+        int clear = color & 0x00FFFFFF;
+        Matrix4f m;
+        BufferBuilder b = begin(ctx, VertexFormat.DrawMode.TRIANGLE_STRIP);
+        m = ctx.getMatrices().peek().getPositionMatrix();
+        for (int i = 0; i <= n; i++) {
+            float x = width * i / n;
+            b.vertex(m, x, WAVE_Y[i] - thickness, 0).color(clear);
+            b.vertex(m, x, WAVE_Y[i], 0).color(color);
+        }
+        end(b);
+        b = begin(ctx, VertexFormat.DrawMode.TRIANGLE_STRIP);
+        for (int i = 0; i <= n; i++) {
+            float x = width * i / n;
+            b.vertex(m, x, WAVE_Y[i], 0).color(color);
+            b.vertex(m, x, WAVE_Y[i] + thickness * 0.6f, 0).color(clear);
+        }
+        end(b);
+    }
+
     public static void roundedRect(DrawContext ctx, float x, float y, float w, float h, float radius, int color) {
         roundedRect(ctx, x, y, w, h, radius, color, color);
     }

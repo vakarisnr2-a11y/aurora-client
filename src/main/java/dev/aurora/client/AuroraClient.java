@@ -5,7 +5,9 @@ import dev.aurora.client.config.ConfigManager;
 import dev.aurora.client.config.LoadReport;
 import dev.aurora.client.event.EventBus;
 import dev.aurora.client.event.events.ChatReceiveEvent;
+import dev.aurora.client.event.EventPriority;
 import dev.aurora.client.event.events.ModuleToggleEvent;
+import dev.aurora.client.event.events.MouseButtonEvent;
 import dev.aurora.client.event.events.Render2DEvent;
 import dev.aurora.client.event.events.Render3DEvent;
 import dev.aurora.client.event.events.TickEvent;
@@ -14,6 +16,7 @@ import dev.aurora.client.hud.HudRenderer;
 import dev.aurora.client.keybind.KeybindManager;
 import dev.aurora.client.module.ModuleManager;
 import dev.aurora.client.module.Modules;
+import dev.aurora.client.module.modules.utility.BetterTooltips;
 import dev.aurora.client.module.modules.world.BlockOutline;
 import dev.aurora.client.notification.NotificationManager;
 import dev.aurora.client.pack.BedwarsPack;
@@ -21,6 +24,7 @@ import dev.aurora.client.util.CombatTracker;
 import dev.aurora.client.util.CpsTracker;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
+import net.fabricmc.fabric.api.client.item.v1.ItemTooltipCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
@@ -31,6 +35,7 @@ import net.minecraft.client.MinecraftClient;
 import net.minecraft.util.ActionResult;
 import com.mojang.blaze3d.systems.RenderSystem;
 import org.joml.Quaternionf;
+import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,6 +77,14 @@ public final class AuroraClient implements ClientModInitializer {
         CpsTracker.INSTANCE.register(eventBus);
         CombatTracker.INSTANCE.register(eventBus);
         eventBus.subscribe(this, ModuleToggleEvent.class, e -> notificationManager.onModuleToggled(e.module, e.enabled));
+        // Toast buttons (e.g. the screenshot's Open / Copy) can be clicked while a screen with a cursor is open.
+        eventBus.subscribe(this, MouseButtonEvent.class, e -> {
+            MinecraftClient mc = MinecraftClient.getInstance();
+            if (!e.inScreen || e.action != GLFW.GLFW_PRESS || e.button != GLFW.GLFW_MOUSE_BUTTON_LEFT || mc.getWindow() == null) return;
+            double x = mc.mouse.getX() * mc.getWindow().getScaledWidth() / Math.max(1, mc.getWindow().getWidth());
+            double y = mc.mouse.getY() * mc.getWindow().getScaledHeight() / Math.max(1, mc.getWindow().getHeight());
+            if (notificationManager.click(x, y)) e.cancel();
+        }, EventPriority.HIGHEST);
 
         registerFabricHooks();
         AuroraCommands.register();
@@ -121,6 +134,11 @@ public final class AuroraClient implements ClientModInitializer {
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
             if (world.isClient) CombatTracker.INSTANCE.onAttack(player, entity);
             return ActionResult.PASS;
+        });
+
+        ItemTooltipCallback.EVENT.register((stack, tooltipContext, tooltipType, lines) -> {
+            BetterTooltips tooltips = moduleManager.get(BetterTooltips.class);
+            if (tooltips.isEnabled()) tooltips.onTooltip(stack, tooltipType, lines);
         });
 
         ClientReceiveMessageEvents.CHAT.register((message, signedMessage, sender, params, receptionTimestamp) ->

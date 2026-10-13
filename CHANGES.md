@@ -188,3 +188,56 @@ Known limitations:
   the window, or items moved out of a locked slot before dropping.
 - Low-End Mode undoes video settings you change by hand while it is on when you turn it off.
 - Entity Distance only hides entities; their sounds and particles still play.
+
+## 1.1.0 Part 3: Batch D
+
+> **Not tested in-game.** Compiles, the game-independent logic is unit-tested (`BatchDTest`) and every new mixin
+> target was checked with `javap`. The dev client was started headless (Xvfb, no sound device) with a temporary,
+> uncommitted hook: Mixin's audit force-loaded every target and all mixins applied without errors (72 modules), and the
+> hook took screenshots of the Aurora main menu, ClickGUI, keybind overview, HUD editor and crosshair editor, which
+> led to two layout fixes (HUD editor overlays drawn in front of HUD text, crosshair editor buttons). No world or
+> server was joined, so chat, tab list, tooltips, sounds and overlays were not seen working.
+
+New modules (all **off by default**):
+
+| Module | Category | What it does |
+| --- | --- | --- |
+| **Chat Mentions** | Misc | Messages that mention your account name (or Extra Names) get the name recolored (and bold), a colored bar on the left (hover: "Mentions you") and an optional sound (Sound Type, Volume; previews in the ClickGUI). Whole-word and case-insensitive; your own messages are skipped. Tint Message also colors the rest of the message. |
+| **Chat Copy** | Misc | With the chat open, right-click a message (or Ctrl+click / middle-click) to copy its text. Better Chat's timestamp and counter are left out (Remove Timestamps). |
+| **Chat Search** | Misc | A search field in the chat screen (bottom right, Ctrl+F; Enter/Tab returns to the chat input). While it holds text, the chat shows only matching messages; closing the chat clears the search. Nothing is deleted. |
+| **Better Tab** | Utility | Player heads on every server (vanilla hides them without online-mode encryption; offline servers show default skins), Sort: Vanilla / Name / Ping, and Own Team First. |
+| **Saturation Overlay** | Visuals | A golden overlay on the hunger bar for the hidden saturation (2 points per icon), filled or outline, optional number. |
+| **Better Tooltips** | Utility | "Durability: 1203 / 1561" (colored by wear) on damageable items, and enchantment levels as numbers ("Sharpness 5"; vanilla shows a raw key above X). |
+| **Low Health Warning** | Visuals | A red glow on the screen edges at or below a health threshold (default 4 hearts), stronger the lower your health, optional heartbeat pulse. Color, Intensity, Size. Off in creative/spectator. |
+| **Armor Warning** | Utility | A warning notification (and optional shield-break sound) when a worn armor piece drops to the threshold (default 15 %). Once per piece until it is repaired or swapped. |
+| **Hit Sounds** | Combat | Plays one of 15 sounds (ding, click, pling, bell...) when you hit an entity, by default only for hits the server confirms. Volume, Pitch, Mute Vanilla (silences vanilla's player attack sounds). |
+| **Aurora Menu** | Visuals | Aurora main menu (animated aurora backdrop, logo, rounded buttons: Singleplayer, Multiplayer, Realms, Mods if ModMenu is installed, Options, Quit, and "Vanilla menu" for the normal title screen), the aurora backdrop behind every menu and on world loading/connecting screens, and the resource loading overlay in Aurora colors with the Aurora icon and an accent progress bar. Each part can be switched off. |
+
+Upgrades to existing modules:
+- **Zoom**: Zoom Speed for the smooth zoom, Scroll Step, Min/Max Zoom for scrolling, Remember Level, Show Level (a
+  "4.0x" readout under the crosshair while scrolling) and Cinematic Camera while zoomed.
+- **Screenshot**: after saving, a notification with **Open**, **Copy** and **Folder** buttons (clickable while a
+  screen with a cursor is open, e.g. chat) and the same buttons as a chat line. Copy puts the image itself on the
+  clipboard via the OS (PowerShell on Windows, osascript on macOS, wl-copy/xclip on Linux) and falls back to copying
+  the file path. Also `/aurora screenshot copy <file>`.
+- Notifications can now carry buttons and keep clear of the chat input while chat is open.
+
+Mixins added: `ChatScreenMixin` (search field, Ctrl+F, click to copy), a `ChatHudMixin.addVisibleMessage` filter for
+search, `PlayerListHudMixin` (the single `isEncrypted` call in `render`, `collectPlayerEntries` return),
+`InGameHudMixin.renderFood` (tail), `EnchantmentMixin` (the only `Text.translatable` in `getName`),
+`SoundManagerMixin` (both `play` overloads), `MinecraftClientMixin.setScreen` (title screen swap), `ScreenMixin`
+(`renderPanoramaBackground`), `LoadingScreensMixin` (`DownloadingTerrainScreen.renderBackground`) and
+`SplashOverlayMixin` (brand color, logo and progress bar). Tooltips use Fabric API's `ItemTooltipCallback`.
+
+Known limitations:
+- Chat Mentions, Chat Copy and Chat Search work on what the chat shows; a server that sends your name split by
+  formatting in unusual ways may not be detected. Copying while a search is active rebuilds the text from the wrapped
+  lines, so spacing at line breaks can differ.
+- Better Tab only re-orders the 80 entries vanilla keeps.
+- Hit Sounds plays at the next client tick after the hit is seen (up to 50 ms later); Mute Vanilla also mutes other
+  players' attack sounds near you.
+- The Saturation Overlay does not follow the hunger bar's shake when you have the Hunger effect.
+- The Aurora splash replaces the Mojang logo only after your profile is loaded, so the very first loading screen at
+  startup stays vanilla; later reloads (resource packs, F3+T) use the Aurora look. The Aurora main menu does not show
+  buttons that other mods add to the vanilla title screen (use "Vanilla menu").
+- Image copy needs PowerShell (Windows), osascript (macOS) or wl-copy/xclip (Linux).

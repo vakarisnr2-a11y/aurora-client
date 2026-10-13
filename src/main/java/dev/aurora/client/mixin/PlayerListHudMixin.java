@@ -1,7 +1,12 @@
 package dev.aurora.client.mixin;
 
 import dev.aurora.client.AuroraClient;
+import dev.aurora.client.module.modules.utility.BetterTab;
 import dev.aurora.client.module.modules.utility.TabPing;
+import net.minecraft.network.ClientConnection;
+import org.spongepowered.asm.mixin.injection.Redirect;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import java.util.List;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.PlayerListHud;
 import net.minecraft.client.network.PlayerListEntry;
@@ -31,5 +36,19 @@ public abstract class PlayerListHudMixin {
             tabPing.render(context, width, x, y, entry);
             ci.cancel();
         }
+    }
+
+    /** Vanilla only draws heads in singleplayer or on encrypted (online-mode) connections; the single isEncrypted call. */
+    @Redirect(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/network/ClientConnection;isEncrypted()Z"))
+    private boolean aurora$heads(ClientConnection connection) {
+        BetterTab tab = AuroraClient.module(BetterTab.class);
+        return (tab != null && tab.isEnabled() && tab.forceHeads()) || connection.isEncrypted();
+    }
+
+    /** Vanilla sorts by team and name and keeps 80 entries; Better Tab re-orders those. */
+    @Inject(method = "collectPlayerEntries", at = @At("RETURN"), cancellable = true)
+    private void aurora$sort(CallbackInfoReturnable<List<PlayerListEntry>> cir) {
+        BetterTab tab = AuroraClient.module(BetterTab.class);
+        if (tab != null && tab.isEnabled()) cir.setReturnValue(tab.order(cir.getReturnValue()));
     }
 }

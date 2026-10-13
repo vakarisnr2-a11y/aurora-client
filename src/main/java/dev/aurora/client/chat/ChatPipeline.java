@@ -2,6 +2,7 @@ package dev.aurora.client.chat;
 
 import dev.aurora.client.AuroraClient;
 import dev.aurora.client.module.modules.misc.BetterChat;
+import dev.aurora.client.module.modules.misc.ChatMentions;
 import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.gui.hud.MessageIndicator;
 import net.minecraft.text.Text;
@@ -42,6 +43,14 @@ public final class ChatPipeline {
         if (AuroraClient.get() == null) return null;
         Text text = message;
         MessageIndicator ind = indicator;
+        ChatMentions mentions = AuroraClient.module(ChatMentions.class);
+        if (mentions != null && mentions.isEnabled()) {
+            Text highlighted = mentions.process(message);
+            if (highlighted != null) {
+                text = highlighted;
+                ind = mentions.indicator();
+            }
+        }
         BetterChat better = AuroraClient.module(BetterChat.class);
         if (better != null && better.isEnabled()) text = better.process(hud, message, text);
         if (text == message && ind == indicator) return null;

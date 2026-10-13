@@ -1,6 +1,8 @@
 package dev.aurora.client.mixin;
 
 import dev.aurora.client.chat.ChatPipeline;
+import dev.aurora.client.chat.ChatSearchState;
+import net.minecraft.client.gui.hud.ChatHudLine;
 import net.minecraft.client.gui.hud.ChatHud;
 import net.minecraft.client.gui.hud.MessageIndicator;
 import net.minecraft.network.message.MessageSignatureData;
@@ -44,5 +46,11 @@ public abstract class ChatHudMixin {
         constant = @Constant(intValue = 100))
     private int aurora$historySize(int original) {
         return ChatPipeline.historySize(original);
+    }
+
+    /** Chat search: messages that do not match the query get no wrapped lines (so they are not shown). */
+    @Inject(method = "addVisibleMessage", at = @At("HEAD"), cancellable = true)
+    private void aurora$search(ChatHudLine message, CallbackInfo ci) {
+        if (ChatSearchState.isFiltering() && !ChatSearchState.matches(message.content().getString())) ci.cancel();
     }
 }

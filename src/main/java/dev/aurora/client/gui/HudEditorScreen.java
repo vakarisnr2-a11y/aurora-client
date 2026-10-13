@@ -121,6 +121,10 @@ public final class HudEditorScreen extends Screen {
             int color = h == hovered ? Theme.accent() : h == selected ? ColorUtil.withAlpha(Theme.accent(), 140) : 0x50FFFFFF;
             Render2D.roundedOutline(ctx, x - 2, y - 2, w + 4, hh + 4, 3, 1, color);
         }
+        // Editor overlays sit in front of the elements (HUD text is drawn slightly forward in depth).
+        ctx.draw();
+        ctx.getMatrices().push();
+        ctx.getMatrices().translate(0, 0, 300);
         if (focus != null && focus.isEnabled()) {
             drawAnchor(ctx, focus);
             drawLabel(ctx, focus);
@@ -137,6 +141,7 @@ public final class HudEditorScreen extends Screen {
         int hw = textRenderer.getWidth(help) + 16;
         Render2D.roundedRect(ctx, width / 2f - hw / 2f, height - 22, hw, 16, 8, Theme.panel());
         ctx.drawText(textRenderer, help, width / 2 - hw / 2 + 8, height - 18, Theme.SUBTEXT, false);
+        ctx.getMatrices().pop();
     }
 
     private void drawLabel(DrawContext ctx, HudModule h) {
