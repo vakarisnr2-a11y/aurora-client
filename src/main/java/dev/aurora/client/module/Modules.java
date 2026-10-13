@@ -1,8 +1,14 @@
 package dev.aurora.client.module;
 
+import dev.aurora.client.module.modules.combat.ArrowCounter;
+import dev.aurora.client.module.modules.combat.BowCharge;
 import dev.aurora.client.module.modules.combat.ComboCounter;
+import dev.aurora.client.module.modules.combat.DamageNumbers;
+import dev.aurora.client.module.modules.combat.HitParticles;
+import dev.aurora.client.module.modules.combat.Hitboxes;
 import dev.aurora.client.module.modules.combat.ReachDisplay;
 import dev.aurora.client.module.modules.combat.TargetHud;
+import dev.aurora.client.module.modules.combat.TotemPops;
 import dev.aurora.client.module.modules.misc.ChatAlerts;
 import dev.aurora.client.module.modules.misc.ClickGui;
 import dev.aurora.client.module.modules.misc.HudEditor;
@@ -33,14 +39,18 @@ import dev.aurora.client.module.modules.visuals.Crosshair;
 import dev.aurora.client.module.modules.visuals.Fullbright;
 import dev.aurora.client.module.modules.visuals.GearTags;
 import dev.aurora.client.module.modules.visuals.HitColor;
+import dev.aurora.client.module.modules.visuals.HotbarStyle;
 import dev.aurora.client.module.modules.visuals.Keystrokes;
 import dev.aurora.client.module.modules.visuals.LowFire;
 import dev.aurora.client.module.modules.visuals.ModuleList;
 import dev.aurora.client.module.modules.visuals.Nametags;
 import dev.aurora.client.module.modules.visuals.NoHurtCam;
+import dev.aurora.client.module.modules.visuals.OldAnimations;
 import dev.aurora.client.module.modules.visuals.Perspective;
 import dev.aurora.client.module.modules.visuals.Watermark;
 import dev.aurora.client.module.modules.world.BlockOutline;
+import dev.aurora.client.module.modules.world.ItemPhysics;
+import dev.aurora.client.module.modules.world.ParticleLimiter;
 import dev.aurora.client.module.modules.world.TimeWeather;
 import dev.aurora.client.module.modules.world.TntTimer;
 import dev.aurora.client.module.modules.world.WorldColor;
@@ -55,16 +65,18 @@ public final class Modules {
     public static List<Module> createAll() {
         return List.of(
             // Combat
-            new TargetHud(), new ComboCounter(), new ReachDisplay(),
+            new TargetHud(), new ComboCounter(), new ReachDisplay(), new DamageNumbers(), new HitParticles(), new Hitboxes(),
+            new ArrowCounter(), new BowCharge(), new TotemPops(),
             // Visuals
             new Fullbright(), new Crosshair(), new Nametags(), new GearTags(), new HitColor(), new NoHurtCam(), new Perspective(),
-            new LowFire(), new BedwarsPackModule(), new ModuleList(), new Watermark(), new Keystrokes(),
+            new LowFire(), new BedwarsPackModule(), new ModuleList(), new Watermark(), new Keystrokes(), new OldAnimations(),
+            new HotbarStyle(),
             // Movement
             new Sprint(), new SafeWalk(), new Step(), new Freelook(), new CameraSmoothing(), new MovementHud(),
             // Player
             new AutoTool(), new InventorySorter(), new ToggleSprint(), new ToggleSneak(),
             // World
-            new WorldColor(), new BlockOutline(), new TimeWeather(), new TntTimer(),
+            new WorldColor(), new BlockOutline(), new TimeWeather(), new TntTimer(), new ItemPhysics(), new ParticleLimiter(),
             // Utility
             new FpsDisplay(), new Coordinates(), new PingDisplay(), new TabPing(), new CpsDisplay(), new ArmorStatus(),
             new PotionEffects(), new DurabilityDisplay(), new ResourceCounter(), new Zoom(), new Screenshot(),

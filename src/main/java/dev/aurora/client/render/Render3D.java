@@ -70,6 +70,22 @@ public final class Render3D {
         b.vertex(x2, y2, z2).color(color).normal(dx, dy, dz);
     }
 
+    /** The 12 edges of a box. */
+    public static void boxEdges(BufferBuilder b, float x1, float y1, float z1, float x2, float y2, float z2, int c) {
+        line(b, x1, y1, z1, x2, y1, z1, c);
+        line(b, x2, y1, z1, x2, y1, z2, c);
+        line(b, x2, y1, z2, x1, y1, z2, c);
+        line(b, x1, y1, z2, x1, y1, z1, c);
+        line(b, x1, y2, z1, x2, y2, z1, c);
+        line(b, x2, y2, z1, x2, y2, z2, c);
+        line(b, x2, y2, z2, x1, y2, z2, c);
+        line(b, x1, y2, z2, x1, y2, z1, c);
+        line(b, x1, y1, z1, x1, y2, z1, c);
+        line(b, x2, y1, z1, x2, y2, z1, c);
+        line(b, x2, y1, z2, x2, y2, z2, c);
+        line(b, x1, y1, z2, x1, y2, z2, c);
+    }
+
     public static void boxFaces(BufferBuilder b, float x1, float y1, float z1, float x2, float y2, float z2, int c) {
         // bottom / top
         b.vertex(x1, y1, z1).color(c); b.vertex(x2, y1, z1).color(c); b.vertex(x2, y1, z2).color(c); b.vertex(x1, y1, z2).color(c);

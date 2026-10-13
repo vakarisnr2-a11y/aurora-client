@@ -6,19 +6,25 @@
   "client": [
     "BackgroundRendererMixin",
     "CameraMixin",
+    "ClientPlayNetworkHandlerMixin",
     "ClientWorldMixin",
+    "EntityRenderDispatcherMixin",
     "EntityRendererMixin",
     "GameRendererMixin",
+    "HeldItemRendererMixin",
     "InGameHudMixin",
     "InGameOverlayRendererMixin",
+    "ItemEntityRendererMixin",
     "KeyboardMixin",
     "LightmapTextureManagerMixin",
     "LivingEntityRendererMixin",
     "MouseMixin",
     "OverlayTextureAccessor",
+    "ParticleManagerMixin",
     "PlayerEntityMixin",
     "PlayerListHudMixin",
-    "TntEntityRendererMixin"
+    "TntEntityRendererMixin",
+    "WorldRendererMixin"
   ],
   "injectors": {
     "defaultRequire": 1
