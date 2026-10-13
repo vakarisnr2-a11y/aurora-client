@@ -112,6 +112,13 @@ crosshair, Totem Pops top left of center).
 - Totem Pops only sees pops and deaths of players near you. A count resets when the player's health reaches 0 on your
   client; servers that respawn players without a death keep counting until the Timeout.
 
+## 1.1.0
+
+Version 1.1.0 (`mod_version=1.1.0`) contains Parts 1–3 below: the HUD overhaul, Batch C and Batch D, 18 new modules
+(72 in total) and upgrades to Zoom, Screenshot, Crosshair, the ClickGUI and the HUD editor. **Nothing in 1.1.0 was
+tested in-game**: it compiles, 85 unit tests pass, all mixin targets were checked with `javap` and a headless dev
+client applied every mixin and drew the new screens, but no world or server was joined.
+
 ## 1.1.0 Part 1: HUD overhaul
 
 > **Not tested in-game.** Compiles and the game-independent logic (theme presets, anchoring, snapping, layouts,
