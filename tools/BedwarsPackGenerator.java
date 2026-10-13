@@ -30,6 +30,7 @@ public class BedwarsPackGenerator {
         tex = root.resolve("assets/minecraft/textures");
         Weapons.generate();
         Armor.generate();
+        Items.generate();
         Legacy16.generate();
         System.out.println("Generated " + written + " textures in " + root.toAbsolutePath());
     }
@@ -422,6 +423,21 @@ public class BedwarsPackGenerator {
         static final int[] LEATHER = Col.ramp(0x3C3C3C, 0x8E8E8E, 0xAAAAAA, 0xC6C6C6, 0xDEDEDE, 0xF4F4F4);
         /** Untinted leather details (laces, buckles, soles). */
         static final int[] LACE = Col.ramp(0x1A120C, 0x3A2A1E, 0x4E3828, 0x664A34, 0x816045, 0x9E7A5A);
+        static final int[] EMERALD = Col.ramp(0x06301A, 0x0F6E33, 0x18994A, 0x2DC765, 0x72EB97, 0xCFFFDF);
+        static final int[] PEARL = Col.ramp(0x04261F, 0x0A5247, 0x0E7363, 0x149884, 0x3FCFB2, 0xB0FFE8);
+        static final int[] SNOW = Col.ramp(0x4F5F75, 0x98AABF, 0xC2D0DE, 0xE2EAF3, 0xF5F8FC, 0xFFFFFF);
+        static final int[] EGG = Col.ramp(0x4F3F28, 0xB59670, 0xD6BF98, 0xEDDDBE, 0xF8EEDA, 0xFFFFFF);
+        static final int[] TNT_RED = Col.ramp(0x3A0A0A, 0x7A1414, 0x9E1E1C, 0xC72E26, 0xE5523F, 0xFF8A70);
+        static final int[] PAPER = Col.ramp(0x4A4640, 0xB0AAA0, 0xCFC9BE, 0xE9E4DA, 0xF7F4EE, 0xFFFFFF);
+        static final int[] INK = Col.ramp(0x0A0A0C, 0x141418, 0x1C1C22, 0x26262E, 0x34343E, 0x4A4A56);
+        static final int[] SPONGE = Col.ramp(0x4F3C0A, 0x9C7C18, 0xC2A02A, 0xDDBF45, 0xEED46F, 0xFFEFA8);
+        static final int[] WET_SPONGE = Col.ramp(0x2E2C0A, 0x65611A, 0x878126, 0xA39C38, 0xBDB65A, 0xDCE29C);
+        static final int[] WATER = Col.ramp(0x0B1F4A, 0x1A3F8C, 0x2456B5, 0x3070DB, 0x5C95F0, 0xAED0FF);
+        static final int[] MILK = Col.ramp(0x7C8290, 0xC4C9D2, 0xDCE0E7, 0xF0F2F6, 0xFAFBFD, 0xFFFFFF);
+        static final int[] LAVA = Col.ramp(0x5A1404, 0xA8300A, 0xD9500E, 0xFF7A1A, 0xFFB03A, 0xFFE38A);
+        static final int[] DIAL = Col.ramp(0x0B0D14, 0x161A26, 0x1E2332, 0x272D40, 0x343B52, 0x47506C);
+        static final int[] GLASS = Col.ramp(0x2E4A66, 0x6D93B8, 0x95B6D4, 0xBCD5EA, 0xDDEBF7, 0xFFFFFF);
+        static final int[] LEAF = Col.ramp(0x0E2E0E, 0x1F5C1C, 0x2C7D27, 0x3FA136, 0x6CC85A, 0xB2EE9A);
         static final int[] BRASS = Col.ramp(0x3A2606, 0x7A5410, 0xA9781E, 0xCFA03A, 0xE8C46A, 0xFBE7A8);
     }
 
@@ -1165,6 +1181,517 @@ public class BedwarsPackGenerator {
                 for (int x = x0; x < x0 + fw; x++) c.tone(x, y0 + 9, MID); // knee plate
                 for (int x = x0; x < x0 + fw; x++) c.tone(x, y0 + 10, LIGHT);
             }
+        }
+    }
+
+    // =====================================================================================================
+    // Group 3: resources and Bedwars items
+    // =====================================================================================================
+
+    /**
+     * Resources (iron, gold, diamond, emerald, netherite) and the Bedwars shop items: fire charge, TNT, ender pearl,
+     * golden apple, snowball, egg (Bridge Egg), buckets, sponge, ladder, compass and potions. Resources use clearly
+     * different shapes as well as colors: diagonal ingots, a brilliant-cut diamond and a tall step-cut emerald.
+     */
+    static final class Items {
+        private Items() {
+        }
+
+        static void generate() throws IOException {
+            save(ingot(Pal.IRON), "item/iron_ingot");
+            save(ingot(Pal.GOLD), "item/gold_ingot");
+            save(ingot(Pal.NETHERITE), "item/netherite_ingot");
+            save(diamond(), "item/diamond");
+            save(emerald(), "item/emerald");
+            save(fireCharge(), "item/fire_charge");
+            save(enderPearl(), "item/ender_pearl");
+            save(goldenApple(), "item/golden_apple");
+            save(ball(Pal.SNOW, 9.6, 9.0, 0), "item/snowball");
+            save(egg(), "item/egg");
+            save(bucket(null), "item/bucket");
+            save(bucket(Pal.WATER), "item/water_bucket");
+            save(bucket(Pal.MILK), "item/milk_bucket");
+            save(bucket(Pal.LAVA), "item/lava_bucket");
+            for (int i = 0; i < 32; i++) save(compass(i), String.format("item/compass_%02d", i));
+            save(potionOverlay(), "item/potion_overlay");
+            save(bottle(false, false), "item/potion");
+            save(bottle(false, false), "item/glass_bottle");
+            save(bottle(true, false), "item/splash_potion");
+            save(bottle(true, true), "item/lingering_potion");
+            save(tntSide(), "block/tnt_side");
+            save(tntEnd(true), "block/tnt_top");
+            save(tntEnd(false), "block/tnt_bottom");
+            save(sponge(Pal.SPONGE, false), "block/sponge");
+            save(sponge(Pal.WET_SPONGE, true), "block/wet_sponge");
+            save(ladder(), "block/ladder");
+        }
+
+        /** A bar lying on the item axis: a lit top face (upper-left) and a front face, with chamfered ends. */
+        static Img ingot(int[] ramp) {
+            Canvas c = new Canvas(32, 32);
+            int m = c.mat(ramp);
+            c.fill((x, y) -> {
+                int j = x - y, dk = x + y - 31;
+                if (dk < -6 || dk > 5) return false;
+                double half = 10.5 + (dk + 6) * 0.45;
+                return Math.abs(j - 0.5) <= half;
+            }, m);
+            c.bevel();
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    if (c.m(x, y) != m) continue;
+                    int dk = x + y - 31;
+                    if (dk == -1 || dk == -2) c.tone(x, y, HIGH); // ridge between the faces
+                    else if (dk < -2 && c.s(x, y) == BASE) c.tone(x, y, LIGHT); // top face
+                    else if (dk >= 3 && c.s(x, y) == BASE) c.tone(x, y, MID); // lower front face
+                }
+            }
+            c.outline();
+            return c.img();
+        }
+
+        static Img diamond() {
+            Canvas c = new Canvas(32, 32);
+            int m = c.mat(Pal.DIAMOND);
+            // Crown (y 8..13) widening to the girdle, pavilion narrowing to the point at the bottom.
+            c.fill((x, y) -> {
+                double cx = x + 0.5 - 16;
+                if (y >= 8 && y <= 13) return Math.abs(cx) <= 6 + (y - 8) * 1.1;
+                if (y >= 14 && y <= 26) return Math.abs(cx) <= 11.5 * (1 - (y - 13.5) / 13.5);
+                return false;
+            }, m);
+            c.bevel();
+            for (int y = 8; y <= 26; y++) {
+                for (int x = 0; x < 32; x++) {
+                    if (c.m(x, y) != m) continue;
+                    double cx = x + 0.5 - 16;
+                    if (y == 13) c.tone(x, y, LIGHT); // girdle
+                    else if (y < 13) c.tone(x, y, Math.abs(cx) < 4 ? HIGH : cx < 0 ? LIGHT : BASE); // table and crown facets
+                    else {
+                        // Pavilion facets: alternating lit and shaded triangles meeting at the point.
+                        double t = cx / (11.5 * (1 - (y - 13.5) / 13.5) + 0.01);
+                        int band = (int) Math.floor((t + 1) * 2.5);
+                        c.tone(x, y, band == 0 ? LIGHT : band == 1 ? BASE : band == 2 ? LIGHT : band == 3 ? MID : DARK);
+                    }
+                }
+            }
+            c.tone(12, 9, HIGH);
+            c.outline();
+            Img img = c.img();
+            sparkle(img, 9, 10);
+            return img;
+        }
+
+        /** A 3-pixel white glint. */
+        static void sparkle(Img img, int x, int y) {
+            img.set(x, y, 0xFFFFFFFF);
+            img.set(x + 1, y, 0xD0FFFFFF);
+            img.set(x, y + 1, 0xD0FFFFFF);
+        }
+
+        static Img emerald() {
+            Canvas c = new Canvas(32, 32);
+            int m = c.mat(Pal.EMERALD);
+            // A tall octagon (step cut).
+            c.fill((x, y) -> {
+                double cx = Math.abs(x + 0.5 - 16), cy = Math.abs(y + 0.5 - 16);
+                return cx <= 7.5 && cy <= 11.5 && cx + cy <= 15.5;
+            }, m);
+            c.bevel();
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    if (c.m(x, y) != m || c.s(x, y) != BASE) continue;
+                    double cx = Math.abs(x + 0.5 - 16), cy = Math.abs(y + 0.5 - 16);
+                    boolean inner = cx <= 4.5 && cy <= 8.5 && cx + cy <= 11;
+                    boolean table = cx <= 2.5 && cy <= 6.5 && cx + cy <= 8;
+                    if (table) c.tone(x, y, x < 16 ? HIGH : LIGHT);
+                    else if (inner) c.tone(x, y, x < 16 && y < 16 ? LIGHT : BASE);
+                    else c.tone(x, y, x < 16 && y < 16 ? BASE : MID);
+                }
+            }
+            c.outline();
+            Img img = c.img();
+            sparkle(img, 12, 7);
+            return img;
+        }
+
+        /** A shaded sphere: lit from the top-left, rim shadow bottom-right. */
+        static Img ball(int[] ramp, double r, double cy, int seed) {
+            Canvas c = new Canvas(32, 32);
+            int m = c.mat(ramp);
+            sphere(c, m, 16, cy + 7, r);
+            c.outline();
+            return c.img();
+        }
+
+        static void sphere(Canvas c, int m, double cx, double cy, double r) {
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    double dx = x + 0.5 - cx, dy = y + 0.5 - cy;
+                    double d = Math.hypot(dx, dy);
+                    if (d > r) continue;
+                    double lx = dx + r * 0.38, ly = dy + r * 0.38; // distance from the light spot
+                    double l = Math.hypot(lx, ly) / (r * 1.38);
+                    int s = l < 0.18 ? HIGH : l < 0.42 ? LIGHT : l < 0.68 ? BASE : l < 0.86 ? MID : DARK;
+                    c.paint(x, y, m, s);
+                }
+            }
+        }
+
+        static Img fireCharge() {
+            Canvas c = new Canvas(32, 32);
+            int lava = c.mat(Pal.LAVA), rock = c.mat(Col.ramp(0x0C0806, 0x1E1410, 0x2E1F18, 0x412C22, 0x57392B, 0x704A38));
+            sphere(c, lava, 16, 16, 10.5);
+            // Dark crust plates with glowing cracks between them.
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    if (c.m(x, y) != lava) continue;
+                    double v = cellNoise(x, y, 5.2, 7);
+                    if (v > 0.16) {
+                        int s = c.s(x, y);
+                        c.paint(x, y, rock, s >= LIGHT ? LIGHT : s == BASE ? BASE : MID);
+                    }
+                }
+            }
+            c.outline();
+            return c.img();
+        }
+
+        /** Distance-to-cell-border noise: small near the borders of irregular cells (cracks), larger inside. */
+        static double cellNoise(int x, int y, double size, int seed) {
+            double best = 9, second = 9;
+            int gx = (int) Math.floor(x / size), gy = (int) Math.floor(y / size);
+            for (int oy = -1; oy <= 1; oy++) {
+                for (int ox = -1; ox <= 1; ox++) {
+                    int cx = gx + ox, cy = gy + oy;
+                    double px = (cx + hash(cx, cy, seed)) * size, py = (cy + hash(cx, cy, seed + 1)) * size;
+                    double d = Math.hypot(x + 0.5 - px, y + 0.5 - py);
+                    if (d < best) {
+                        second = best;
+                        best = d;
+                    } else if (d < second) {
+                        second = d;
+                    }
+                }
+            }
+            return (second - best) / size;
+        }
+
+        static Img enderPearl() {
+            Canvas c = new Canvas(32, 32);
+            int m = c.mat(Pal.PEARL), core = c.mat(Col.ramp(0x020F0C, 0x041A16, 0x062520, 0x0A332C, 0x0F4A40, 0x1A6A5C));
+            sphere(c, m, 16, 16, 10);
+            // Dark iris in the middle with a lighter ring around it.
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    double d = Math.hypot(x + 0.5 - 16.5, y + 0.5 - 16.5);
+                    if (d <= 4.2) c.paint(x, y, core, d < 2.2 ? BASE : LIGHT);
+                    else if (d <= 5.4 && c.m(x, y) == m) c.tone(x, y, LIGHT);
+                }
+            }
+            c.paint(12, 11, m, HIGH);
+            c.paint(13, 11, m, HIGH);
+            c.paint(12, 12, m, HIGH);
+            c.outline();
+            return c.img();
+        }
+
+        static Img goldenApple() {
+            Canvas c = new Canvas(32, 32);
+            int gold = c.mat(Pal.GOLD), stem = c.mat(Pal.HANDLE), leaf = c.mat(Pal.LEAF);
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    double px = x + 0.5, py = y + 0.5;
+                    boolean in = Math.hypot(px - 12.5, py - 16.5) <= 7.6 || Math.hypot(px - 19.5, py - 16.5) <= 7.6
+                        || Math.hypot(px - 16, py - 19.5) <= 8.5;
+                    if (in && !(py < 11.5 && Math.abs(px - 16) < 1.6)) {
+                        double dx = px - 13.5, dy = py - 14.5, l = Math.hypot(dx, dy) / 13.0;
+                        int s = l < 0.18 ? HIGH : l < 0.42 ? LIGHT : l < 0.68 ? BASE : l < 0.86 ? MID : DARK;
+                        c.paint(x, y, gold, s);
+                    }
+                }
+            }
+            c.fill((x, y) -> (x == 16 && y >= 6 && y <= 11) || (x == 17 && y >= 4 && y <= 6), stem);
+            c.fill((x, y) -> Math.hypot((x + 0.5 - 21) / 1.7, y + 0.5 - 7.5) <= 2.0, leaf);
+            c.bevel();
+            c.outline();
+            return c.img();
+        }
+
+        static Img egg() {
+            Canvas c = new Canvas(32, 32);
+            int m = c.mat(Pal.EGG);
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    double dx = (x + 0.5 - 16) / 7.6, dy = (y + 0.5 - 17) / (y < 17 ? 10.5 : 8.5);
+                    if (dx * dx + dy * dy > 1) continue;
+                    double l = Math.hypot(dx + 0.4, dy + 0.4) / 1.4;
+                    int s = l < 0.18 ? HIGH : l < 0.42 ? LIGHT : l < 0.68 ? BASE : l < 0.86 ? MID : DARK;
+                    c.paint(x, y, m, s);
+                }
+            }
+            // Speckles.
+            for (int y = 0; y < 32; y++) for (int x = 0; x < 32; x++) {
+                if (c.m(x, y) == m && c.s(x, y) >= BASE && hash(x, y, 31) < 0.07) c.tone(x, y, MID);
+            }
+            c.outline();
+            return c.img();
+        }
+
+        /** Iron bucket: rim with the inside (empty or filled with {@code liquid}) and a tapered, banded body. */
+        static Img bucket(int[] liquid) {
+            Canvas c = new Canvas(32, 32);
+            int iron = c.mat(Pal.IRON), inside = c.mat(liquid == null ? Col.darker(Pal.IRON) : liquid);
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    double px = x + 0.5 - 16, py = y + 0.5;
+                    boolean rim = sq(px / 10.5) + sq((py - 9) / 3.6) <= 1;
+                    double half = 10.5 - (py - 9) * 0.2;
+                    boolean body = py >= 9 && py <= 26.5 && Math.abs(px) <= half;
+                    boolean bottom = sq(px / 7.0) + sq((py - 26.5) / 1.8) <= 1;
+                    if (!(rim || body || bottom)) continue;
+                    // Cylinder shading: lit on the left, shaded on the right.
+                    double t = px / 10.5;
+                    int s = t < -0.75 ? LIGHT : t < -0.35 ? HIGH : t < 0.2 ? LIGHT : t < 0.6 ? BASE : t < 0.85 ? MID : DARK;
+                    c.paint(x, y, iron, s);
+                }
+            }
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    double px = x + 0.5 - 16, py = y + 0.5;
+                    if (sq(px / 8.6) + sq((py - 9) / 2.4) <= 1) {
+                        int s = liquid == null ? (py < 9 ? DARK : MID) : (px < -3 && py < 9.5 ? HIGH : px < 2 ? LIGHT : BASE);
+                        c.paint(x, y, inside, s);
+                    }
+                }
+            }
+            for (int x = 0; x < 32; x++) { // bands
+                for (int band : new int[]{14, 22}) if (c.m(x, band) == iron) c.tone(x, band, MID);
+            }
+            c.outline();
+            return c.img();
+        }
+
+        /** Compass dial with the needle rotated counterclockwise by frame * 11.25 degrees (frame 0 points up). */
+        static Img compass(int frame) {
+            Canvas c = new Canvas(32, 32);
+            int rim = c.mat(Pal.IRON), dial = c.mat(Pal.DIAL), red = c.mat(Pal.RED), tail = c.mat(Pal.IRON), mark = c.mat(Pal.STRING);
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    double dx = x + 0.5 - 16, dy = y + 0.5 - 16, d = Math.hypot(dx, dy);
+                    if (d > 12.5) continue;
+                    if (d > 10.4) {
+                        double l = (dx + dy) / d; // -1 top-left .. 1 bottom-right
+                        c.paint(x, y, rim, l < -0.6 ? HIGH : l < 0 ? LIGHT : l < 0.6 ? BASE : MID);
+                    } else {
+                        c.paint(x, y, dial, (dx + dy) < -6 ? LIGHT : BASE);
+                    }
+                }
+            }
+            for (int i = 0; i < 4; i++) { // tick marks
+                double a = i * Math.PI / 2;
+                int tx = (int) Math.floor(16 + Math.sin(a) * 8.6), ty = (int) Math.floor(16 - Math.cos(a) * 8.6);
+                c.paint(tx, ty, mark, i == 0 ? HIGH : BASE);
+            }
+            double a = frame * Math.PI * 2 / 32;
+            double ux = -Math.sin(a), uy = -Math.cos(a);
+            c.fill((x, y) -> segDist(x + 0.5, y + 0.5, 16, 16, 16 + ux * 7.6, 16 + uy * 7.6) <= 0.95, red);
+            c.fill((x, y) -> segDist(x + 0.5, y + 0.5, 16, 16, 16 - ux * 6.4, 16 - uy * 6.4) <= 0.95, tail);
+            c.paint(15, 15, rim, HIGH);
+            c.paint(16, 16, rim, BASE);
+            c.paint(15, 16, rim, LIGHT);
+            c.paint(16, 15, rim, LIGHT);
+            c.outline();
+            return c.img();
+        }
+
+        static boolean flaskBody(int x, int y) {
+            return Math.hypot(x + 0.5 - 16, y + 0.5 - 20) <= 8.6;
+        }
+
+        /** The liquid, in light greys so the game's effect tint shows true colors. */
+        static Img potionOverlay() {
+            Canvas c = new Canvas(32, 32);
+            int m = c.mat(Col.ramp(0x6A6A6A, 0xA8A8A8, 0xC4C4C4, 0xDCDCDC, 0xF0F0F0, 0xFFFFFF));
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    double d = Math.hypot(x + 0.5 - 16, y + 0.5 - 20);
+                    if (d > 7.4 || y < 15) continue;
+                    double l = Math.hypot(x + 0.5 - 13, y + 0.5 - 17) / 10.5;
+                    c.paint(x, y, m, y == 15 ? HIGH : l < 0.3 ? HIGH : l < 0.55 ? LIGHT : l < 0.8 ? BASE : MID);
+                }
+            }
+            return c.img();
+        }
+
+        /**
+         * The glass flask drawn over the liquid: outline, rim highlights and a cork. The inside stays transparent so
+         * the tinted liquid shows. Splash bottles have a neck bent to the top-right; lingering ones a wider lip.
+         */
+        static Img bottle(boolean splash, boolean lingering) {
+            Img img = new Img(32, 32);
+            int edge = Col.alpha(Pal.GLASS[OUT], 255), glass = Col.alpha(Pal.GLASS[LIGHT], 150), shine = 0xE6FFFFFF;
+            Canvas body = new Canvas(32, 32);
+            int g = body.mat(Pal.GLASS), cork = body.mat(Pal.HANDLE);
+            body.fill(Items::flaskBody, g);
+            if (!splash) {
+                body.fill((x, y) -> x >= 13 && x <= 18 && y >= 8 && y <= 12, g);
+                body.fill((x, y) -> x >= 12 && x <= 19 && y >= 7 && y <= 8, g);
+                body.fill((x, y) -> x >= 13 && x <= 18 && y >= 3 && y <= 6, cork);
+            } else {
+                body.fill((x, y) -> segDist(x + 0.5, y + 0.5, 17, 13, 20.5, 8.5) <= 2.9, g);
+                body.fill((x, y) -> segDist(x + 0.5, y + 0.5, 20.5, 8.5, 21.5, 7) <= (lingering ? 3.8 : 3.2), g);
+                body.fill((x, y) -> segDist(x + 0.5, y + 0.5, 22.5, 5.5, 24, 3.8) <= 2.2, cork);
+            }
+            body.bevel();
+            Img shape = body.img();
+            // Draw: every glass pixel on the shape's border is the opaque edge; the inside is faint glass.
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    int m = body.m(x, y);
+                    if (m < 0) continue;
+                    if (m == cork) {
+                        img.set(x, y, shape.get(x, y));
+                        continue;
+                    }
+                    boolean border = body.m(x - 1, y) != g || body.m(x + 1, y) != g || body.m(x, y - 1) != g || body.m(x, y + 1) != g;
+                    img.set(x, y, border ? edge : glass & 0x22FFFFFF | (0x22 << 24));
+                }
+            }
+            // Outline around the cork and glass.
+            Img out = img.copy();
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    if (body.m(x, y) >= 0) continue;
+                    boolean near = body.m(x - 1, y) >= 0 || body.m(x + 1, y) >= 0 || body.m(x, y - 1) >= 0 || body.m(x, y + 1) >= 0;
+                    if (near && (body.m(x - 1, y) == cork || body.m(x + 1, y) == cork || body.m(x, y - 1) == cork || body.m(x, y + 1) == cork)) {
+                        out.set(x, y, Pal.HANDLE[OUT]);
+                    }
+                }
+            }
+            // Shine on the upper-left of the flask.
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    double d = Math.hypot(x + 0.5 - 16, y + 0.5 - 20);
+                    double ang = Math.atan2(y + 0.5 - 20, x + 0.5 - 16);
+                    if (d >= 5.6 && d <= 6.6 && ang > -2.6 && ang < -1.7) out.set(x, y, shine);
+                }
+            }
+            out.set(11, 21, shine);
+            out.set(11, 22, 0xA0FFFFFF);
+            return out;
+        }
+
+        // ------------------------------------------------------------------ TNT, sponge, ladder
+
+        /** 5x7 pixel letters for the TNT label. */
+        static final String[] T = {"#####", "..#..", "..#..", "..#..", "..#..", "..#..", "..#.."};
+        static final String[] N = {"#...#", "##..#", "#.#.#", "#.#.#", "#..##", "#...#", "#...#"};
+
+        static Img tntSide() {
+            Canvas c = new Canvas(32, 32);
+            int red = c.mat(Pal.TNT_RED), paper = c.mat(Pal.PAPER), ink = c.mat(Pal.INK);
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    if (y >= 10 && y <= 21) {
+                        c.paint(x, y, paper, y == 10 ? LIGHT : y == 21 ? MID : BASE);
+                    } else {
+                        int stick = x % 8; // four sticks of dynamite
+                        int s = stick == 0 ? LIGHT : stick == 7 ? DARK : stick == 6 ? MID : stick == 1 ? HIGH : BASE;
+                        if (y == 0 || y == 31) s = DARK;
+                        c.paint(x, y, red, s);
+                    }
+                }
+            }
+            String[][] letters = {T, N, T};
+            for (int l = 0; l < 3; l++) {
+                for (int yy = 0; yy < 7; yy++) {
+                    for (int xx = 0; xx < 5; xx++) {
+                        if (letters[l][yy].charAt(xx) == '#') c.paint(7 + l * 7 + xx, 12 + yy, ink, BASE);
+                    }
+                }
+            }
+            return c.img();
+        }
+
+        static Img tntEnd(boolean fuse) {
+            Canvas c = new Canvas(32, 32);
+            int red = c.mat(Pal.TNT_RED), cap = c.mat(Pal.PAPER), wick = c.mat(Pal.INK);
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    int qx = x / 16, qy = y / 16;
+                    double d = Math.hypot(x + 0.5 - (qx * 16 + 8), y + 0.5 - (qy * 16 + 8));
+                    int s;
+                    if (d <= 6.5) s = d <= 2.5 ? MID : (x % 16 + y % 16 < 14 ? LIGHT : BASE);
+                    else s = DARK;
+                    c.paint(x, y, red, s);
+                    if (d > 6.5 && d <= 7.5) c.paint(x, y, red, OUT);
+                }
+            }
+            if (fuse) {
+                c.fill((x, y) -> Math.hypot(x + 0.5 - 16, y + 0.5 - 16) <= 3.2, cap, BASE);
+                c.paint(15, 15, wick, BASE);
+                c.paint(16, 15, wick, BASE);
+                c.paint(15, 16, wick, LIGHT);
+                c.paint(16, 16, wick, BASE);
+                c.paint(14, 14, cap, HIGH);
+            }
+            return c.img();
+        }
+
+        /** Tileable sponge: evenly spread round pores (wrapping at the edges), shaded inside the top and lit on the lower rim. */
+        static Img sponge(int[] ramp, boolean wet) {
+            Canvas c = new Canvas(32, 32);
+            int m = c.mat(ramp);
+            for (int y = 0; y < 32; y++) for (int x = 0; x < 32; x++) c.paint(x, y, m, hash(x, y, wet ? 5 : 4) < 0.1 ? LIGHT : BASE);
+            Random rnd = new Random(wet ? 77 : 76);
+            for (int gy = 0; gy < 4; gy++) {
+                for (int gx = 0; gx < 4; gx++) {
+                    double px = gx * 8 + 2 + rnd.nextDouble() * 4, py = gy * 8 + 2 + rnd.nextDouble() * 4;
+                    double r = 1.3 + rnd.nextDouble() * 0.9;
+                    pore(c, m, px, py, r);
+                    if (rnd.nextDouble() < 0.6) pore(c, m, px + 3 + rnd.nextDouble() * 2, py + 3.5 + rnd.nextDouble(), 0.9);
+                }
+            }
+            Img img = c.img();
+            if (wet) for (int i = 0; i < 7; i++) img.set(rnd.nextInt(32), rnd.nextInt(32), 0xFFE4F2FF); // droplets
+            return img;
+        }
+
+        static void pore(Canvas c, int m, double px, double py, double r) {
+            for (int y = 0; y < 32; y++) {
+                for (int x = 0; x < 32; x++) {
+                    double dx = wrap(x + 0.5 - px), dy = wrap(y + 0.5 - py), d = Math.hypot(dx, dy);
+                    if (d <= r) c.paint(x, y, m, dy < -0.2 ? DARK : MID);
+                    else if (d <= r + 1.0 && dy > 0.4 && Math.abs(dx) < r + 0.3) c.paint(x, y, m, HIGH);
+                }
+            }
+        }
+
+        /** Shortest signed distance on a 32 px torus. */
+        static double wrap(double d) {
+            while (d > 16) d -= 32;
+            while (d < -16) d += 32;
+            return d;
+        }
+
+        static Img ladder() {
+            Canvas c = new Canvas(32, 32);
+            int rail = c.mat(Pal.WOOD), rung = c.mat(Col.darker(Pal.WOOD));
+            c.fill((x, y) -> (x >= 4 && x <= 7) || (x >= 24 && x <= 27), rail);
+            c.fill((x, y) -> x >= 8 && x <= 23 && (y % 8 >= 3 && y % 8 <= 5), rung);
+            c.bevel();
+            // The rails continue into the blocks above and below, so they keep no top/bottom edge.
+            for (int x = 0; x < 32; x++) {
+                for (int y : new int[]{0, 31}) {
+                    if (c.m(x, y) == rail) c.tone(x, y, x == 4 || x == 24 ? LIGHT : x == 7 || x == 27 ? MID : BASE);
+                }
+            }
+            for (int y = 2; y < 32; y += 8) { // nails
+                c.tone(5, y + 2, DARK);
+                c.tone(25, y + 2, DARK);
+            }
+            return c.img();
         }
     }
 

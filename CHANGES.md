@@ -393,3 +393,17 @@ grey, iron near-white, gold yellow, diamond cyan, netherite dark violet-grey.
 - **Leather** is drawn in light grey so the game's dye tint shows true team colors (undyed leather stays brown).
   The laces, brass rivets, buckle and soles are in the untinted `_overlay` textures, for both the items and the worn
   layers.
+
+### Resources and Bedwars items
+- **Resources** with different shapes as well as colors: diagonal iron, gold and netherite ingots with a lit top
+  face, a brilliant-cut diamond with facets and a glint, and a tall step-cut emerald.
+- **Fire charge** (glowing cracks between dark crust plates), **ender pearl** (teal orb with a dark core),
+  **golden apple** (also used by the enchanted golden apple), **snowball** (Bedbug), **egg** (also the Bridge
+  Egg, which is an egg item), **bucket**, **water bucket**, **milk bucket** (Magic Milk) and **lava bucket**.
+- **Compass**: all 32 needle frames, red north half on a dark dial with an iron rim.
+- **Potions**: the liquid (`potion_overlay`) is drawn in light greys, so Speed, Jump Boost, Invisibility and every
+  other effect show their own color through the game's tint. The **potion**, **splash potion** (bent neck),
+  **lingering potion** (wider lip) and **glass bottle** are clear glass with a cork and a shine.
+- **TNT** side (dynamite sticks with a "TNT" label), top (stick ends and fuse) and bottom. Primed TNT uses the
+  block's textures.
+- **Sponge** and **wet sponge** (tileable, with round pores; the wet one darker, with droplets), and the **ladder**.
