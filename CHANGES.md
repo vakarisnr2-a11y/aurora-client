@@ -134,3 +134,57 @@ crosshair, Totem Pops top left of center).
 - Every HUD element now draws through the shared style: FPS, Ping, CPS, Coordinates, Potion Effects, Armor Status,
   Durability, Resource Counter, Keystrokes, Target HUD, Combo Counter, Reach Display, Arrow Counter, Bow Charge,
   Totem Pops, Movement HUD, Time & Weather, Module List, Watermark and the Toggle Sprint/Sneak indicators.
+
+## 1.1.0 Part 2: Batch C
+
+> **Not tested in-game.** Compiles, the game-independent logic is unit-tested (`BatchCTest`) and every new mixin
+> target was checked with `javap` against the mapped 1.21.1 jar. The dev client was started headless with a
+> temporary (uncommitted) hook that ran Mixin's audit, which force-loads every remaining mixin target: 62 modules
+> registered and all mixins applied without errors. No world or server was joined.
+
+New modules (all **off by default**):
+
+| Module | Category | What it does |
+| --- | --- | --- |
+| **Better Chat** | Misc | Timestamps (`[14:05]`, `[14:05:09]` or `[2:05 PM]`, own color), stacks a message that repeats the previous one into one line with a counter (`... [x3]`), and keeps a longer history (History Size 100–2000, default 500; also the sent-message history). A repeat only replaces the previous copy while it is still the newest message. |
+| **Scoreboard** | Visuals (HUD) | The sidebar as a HUD element: move and scale it in the HUD editor, Hide Numbers (the red scores, on by default), Style (Vanilla or HUD Theme), Title, Text Shadow. Same lines and order as vanilla (its own comparator, 15 lines, team-color objective first); vanilla's sidebar is not drawn while it is on. |
+| **Crosshair Editor** | Visuals | Opens a 15x15 pixel editor (also `/aurora crosshair`): left-drag paints, right-drag erases, mirror left/right and top/bottom, Clear, Invert, presets (Cross, Gap, Dot, Circle, X, T), a live preview at real size and "Use pixel style". The Crosshair module gained the **Pixel** style and a Pixel Size setting; the pattern is stored in the profile. |
+| **Unfocused FPS** | Utility | Caps the frame rate while the window is in the background (default 15) or minimized (default 5). Never raises vanilla's own limit. |
+| **Entity Distance** | World | Stops drawing entities beyond a distance from the camera (default 48 blocks). Players are only limited with Limit Players (Player Distance, default 96). You, your camera entity, your vehicle and passengers are never hidden. |
+| **Low-End Mode** | World | One toggle for cheap video settings: minimal particles, no clouds, no entity shadows, fast graphics, no smooth lighting, no biome blend, entity distance 50 %, render distance capped at 8 (each switchable). Your own values come back when it is turned off; they are kept in `config/aurora/lowend-originals.txt` while it is on, so a restart or profile switch does not lose them. |
+| **Item Lock** | Player | Lock Key (default K) locks the selected hotbar slot in game, or the hovered slot of your inventory in any container screen. Q / Ctrl+Q and throwing from an inventory screen are blocked for locked slots (with a notification), and locked slots get a padlock in the hotbar and inventory. |
+
+Other additions:
+- **Keybind overview** (ClickGUI footer "⌨ Keybinds" or `/aurora keybinds`): every Aurora keybind (module keys and
+  extra keys such as Screenshot's Capture Key) with All / Bound / Conflicts filters. Warns when a key is also used by
+  another Aurora bind or a Minecraft control (e.g. Zoom on C shares the key with "Save Hotbar Activator"). Click a
+  key to rebind (Backspace clears), right-click to switch Toggle/Hold.
+- **Favorites**: middle-click (or Shift+click) a module in the ClickGUI to pin it. Pinned modules appear in a new
+  Favorites panel and get a ★. Stored in the profile.
+- **Theme import/export**: "Theme Out" / "Theme In" in the Profiles panel and `/aurora theme export|import [file]`.
+  A theme holds the ClickGUI look (preset, accent, opacity, corner radius, blur, animation speed) and every HUD Theme
+  setting including whether it is on; panel positions and GUI scale are not part of it. Exports go to
+  `config/aurora/themes/` and the clipboard; import reads the clipboard or a file from that folder.
+- `/aurora layout list|save|load <name>` for the HUD layouts from Part 1.
+
+Mixins added: `ChatHudMixin` (head of `addMessage(Text, MessageSignatureData, MessageIndicator)` — every chat line —
+and the three `100` history caps), `ChatHudAccessor`, `InGameHudAccessor` (vanilla's sidebar comparator) and a head
+cancel of the outer `renderScoreboardSidebar` in `InGameHudMixin`, `MinecraftClientMixin` (`getFramerateLimit`),
+`EntityRenderDispatcherMixin.shouldRender`, `ClientPlayerEntityMixin.dropSelectedItem`,
+`ClientPlayerInteractionManagerMixin.clickSlot` (THROW only), `HandledScreenMixin.drawSlot` and
+`HandledScreenAccessor` (hovered slot).
+
+Skipped:
+- **Discord status**: skipped. The only pure-Java IPC client is jagrosh's DiscordIPC (Apache-2.0). It is not on
+  Maven Central (it was published to JCenter, which is gone, so it would need JitPack), it uses junixsocket with
+  native libraries for the Unix socket on Linux/macOS, and its JSON dependency (org.json) has had non-OSI licensing.
+  The other options wrap native code too: java-discord-rpc (JNA plus the deprecated discord-rpc binaries) and the
+  Discord Game SDK (proprietary binary). It could also not be tested here: there is no Discord client in the build
+  container, and a status needs an application ID from the Discord Developer Portal, which only you can create.
+
+Known limitations:
+- Better Chat stacks by plain text, so two different players sending the same text in a row are stacked too.
+- Item Lock does not cover creative mode's inventory (it drops items through its own code), dragging an item out of
+  the window, or items moved out of a locked slot before dropping.
+- Low-End Mode undoes video settings you change by hand while it is on when you turn it off.
+- Entity Distance only hides entities; their sounds and particles still play.

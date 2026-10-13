@@ -66,6 +66,27 @@ public final class Render2D {
         end(b);
     }
 
+    /**
+     * Many plain rectangles in one draw call: {@code rects} holds {x, y, w, h} quadruples, each scaled by
+     * {@code scale} and offset by (ox, oy), and grown by {@code grow} on every side.
+     */
+    public static void rects(DrawContext ctx, float ox, float oy, float scale, float grow, float[] rects, int count, int color) {
+        if (count <= 0) return;
+        BufferBuilder b = begin(ctx, VertexFormat.DrawMode.QUADS);
+        Matrix4f m = ctx.getMatrices().peek().getPositionMatrix();
+        for (int i = 0; i < count; i++) {
+            float x = ox + rects[i * 4] * scale - grow;
+            float y = oy + rects[i * 4 + 1] * scale - grow;
+            float w = rects[i * 4 + 2] * scale + grow * 2;
+            float h = rects[i * 4 + 3] * scale + grow * 2;
+            b.vertex(m, x, y, 0).color(color);
+            b.vertex(m, x, y + h, 0).color(color);
+            b.vertex(m, x + w, y + h, 0).color(color);
+            b.vertex(m, x + w, y, 0).color(color);
+        }
+        end(b);
+    }
+
     public static void roundedRect(DrawContext ctx, float x, float y, float w, float h, float radius, int color) {
         roundedRect(ctx, x, y, w, h, radius, color, color);
     }

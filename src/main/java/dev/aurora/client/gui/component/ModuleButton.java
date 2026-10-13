@@ -11,6 +11,7 @@ import dev.aurora.client.util.KeyNames;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.Screen;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -106,8 +107,12 @@ public final class ModuleButton extends Component {
         String right = "";
         if (module.getKeybind().isBound()) right = KeyNames.of(module.getKeybind().get());
         if (!settings.isEmpty()) right = right + (right.isEmpty() ? "" : " ") + (expanded ? "−" : "+");
-        if (!right.isEmpty()) {
-            ctx.drawText(tr, right, (int) (x + width - 5 - tr.getWidth(right)), (int) (y + 4), Theme.MUTED, false);
+        int rightX = (int) (x + width - 5 - tr.getWidth(right));
+        if (!right.isEmpty()) ctx.drawText(tr, right, rightX, (int) (y + 4), Theme.MUTED, false);
+        if (screen.isFavorite(module)) {
+            String star = "★";
+            int starX = rightX - tr.getWidth(star) - (right.isEmpty() ? 0 : 3);
+            ctx.drawText(tr, star, starX, (int) (y + 4), ColorUtil.withAlpha(Theme.accent(), 220), false);
         }
 
         float ex = expandAnim.getFloat();
@@ -132,7 +137,8 @@ public final class ModuleButton extends Component {
     public boolean mouseClicked(double mx, double my, int button) {
         if (!isVisibleInList()) return false;
         if (mx >= x && mx < x + width && my >= y && my < y + ROW_HEIGHT) {
-            if (button == 0) module.toggle();
+            if (button == 2 || (button == 0 && Screen.hasShiftDown())) screen.toggleFavorite(module);
+            else if (button == 0) module.toggle();
             else if (button == 1) setExpanded(!expanded);
             screen.setNavFocus(this);
             return true;
@@ -173,7 +179,7 @@ public final class ModuleButton extends Component {
 
     @Override
     public String getTooltip(double mx, double my) {
-        if (my >= y && my < y + ROW_HEIGHT) return module.getDescription();
+        if (my >= y && my < y + ROW_HEIGHT) return module.getDescription() + (screen.isFavorite(module) ? " (Pinned: middle-click to unpin)" : "");
         if (expandAnim.get() > 0.9) {
             for (SettingComponent s : settings) {
                 if (s.isFullyShown() && s.isHovered(mx, my)) return s.getTooltip(mx, my);

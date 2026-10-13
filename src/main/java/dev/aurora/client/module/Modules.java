@@ -56,6 +56,13 @@ import dev.aurora.client.module.modules.world.TimeWeather;
 import dev.aurora.client.module.modules.world.TntTimer;
 import dev.aurora.client.module.modules.world.WorldColor;
 
+import dev.aurora.client.module.modules.misc.BetterChat;
+import dev.aurora.client.module.modules.visuals.ScoreboardHud;
+import dev.aurora.client.module.modules.visuals.CrosshairEditor;
+import dev.aurora.client.module.modules.utility.UnfocusedFps;
+import dev.aurora.client.module.modules.world.EntityDistance;
+import dev.aurora.client.module.modules.world.LowEndMode;
+import dev.aurora.client.module.modules.player.ItemLock;
 import java.util.List;
 
 /** The full list of built-in modules, in GUI order within each category. */
@@ -71,18 +78,19 @@ public final class Modules {
             // Visuals
             new Fullbright(), new Crosshair(), new Nametags(), new GearTags(), new HitColor(), new NoHurtCam(), new Perspective(),
             new LowFire(), new BedwarsPackModule(), new ModuleList(), new Watermark(), new Keystrokes(), new OldAnimations(),
-            new HotbarStyle(), new HudTheme(),
+            new HotbarStyle(), new HudTheme(), new ScoreboardHud(), new CrosshairEditor(),
             // Movement
             new Sprint(), new SafeWalk(), new Step(), new Freelook(), new CameraSmoothing(), new MovementHud(),
             // Player
-            new AutoTool(), new InventorySorter(), new ToggleSprint(), new ToggleSneak(),
+            new AutoTool(), new InventorySorter(), new ToggleSprint(), new ToggleSneak(), new ItemLock(),
             // World
-            new WorldColor(), new BlockOutline(), new TimeWeather(), new TntTimer(), new ItemPhysics(), new ParticleLimiter(),
+            new WorldColor(), new BlockOutline(), new TimeWeather(), new TntTimer(), new ItemPhysics(), new ParticleLimiter(), new EntityDistance(),
+            new LowEndMode(),
             // Utility
             new FpsDisplay(), new Coordinates(), new PingDisplay(), new TabPing(), new CpsDisplay(), new ArmorStatus(),
-            new PotionEffects(), new DurabilityDisplay(), new ResourceCounter(), new Zoom(), new Screenshot(),
+            new PotionEffects(), new DurabilityDisplay(), new ResourceCounter(), new Zoom(), new Screenshot(), new UnfocusedFps(),
             // Misc
-            new ClickGui(), new HudEditor(), new Notifications(), new ChatAlerts()
+            new ClickGui(), new HudEditor(), new Notifications(), new ChatAlerts(), new BetterChat()
         );
     }
 }

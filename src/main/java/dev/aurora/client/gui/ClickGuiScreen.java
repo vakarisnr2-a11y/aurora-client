@@ -3,6 +3,7 @@ package dev.aurora.client.gui;
 import com.mojang.blaze3d.systems.RenderSystem;
 import dev.aurora.client.AuroraClient;
 import dev.aurora.client.gui.component.Component;
+import dev.aurora.client.gui.component.FavoritesPanel;
 import dev.aurora.client.gui.component.ModuleButton;
 import dev.aurora.client.gui.component.Panel;
 import dev.aurora.client.gui.component.ProfilesPanel;
@@ -40,6 +41,8 @@ public final class ClickGuiScreen extends Screen {
     private final ClickGui settings;
     private final List<Panel> panels = new ArrayList<>();
     private ProfilesPanel profilesPanel;
+    private FavoritesPanel favoritesPanel;
+    private java.util.Set<String> favorites = java.util.Set.of();
     private final TextInput search = new TextInput(32);
     private final Animation openAnim = new Animation(0, 10);
     private final Animation searchFocusAnim = new Animation(0, 16);
@@ -63,6 +66,9 @@ public final class ClickGuiScreen extends Screen {
         }
         profilesPanel = new ProfilesPanel(this);
         panels.add(profilesPanel);
+        favorites = ClickGui.parseFavorites(String.join(",", settings.favoriteIds()));
+        favoritesPanel = new FavoritesPanel(this);
+        panels.add(favoritesPanel);
     }
 
     // ------------------------------------------------------------------ helpers for components
@@ -112,8 +118,22 @@ public final class ClickGuiScreen extends Screen {
         navFocus = button;
     }
 
+    public boolean isFavorite(Module module) {
+        return favorites.contains(module.getId());
+    }
+
+    /** Pins or unpins a module in the Favorites panel. */
+    public void toggleFavorite(Module module) {
+        settings.toggleFavorite(module);
+        favorites = ClickGui.parseFavorites(String.join(",", settings.favoriteIds()));
+        if (favoritesPanel.getChildren().contains(navFocus)) navFocus = null; // its button is about to be replaced
+        favoritesPanel.refresh();
+    }
+
     public void onProfileChanged() {
         profilesPanel.refresh();
+        favorites = ClickGui.parseFavorites(String.join(",", settings.favoriteIds()));
+        favoritesPanel.refresh();
         scale = settings.getGuiScale();
         layoutPanels();
     }
@@ -239,6 +259,14 @@ public final class ClickGuiScreen extends Screen {
         return mx >= hudButtonX() && mx < hudButtonX() + 70 && my >= footerY() && my < footerY() + 16;
     }
 
+    private float keysButtonX() {
+        return hudButtonX() - 76;
+    }
+
+    private boolean overKeysButton(double mx, double my) {
+        return mx >= keysButtonX() && mx < keysButtonX() + 70 && my >= footerY() && my < footerY() + 16;
+    }
+
     private void renderFooter(DrawContext ctx, double mx, double my) {
         TextRenderer tr = textRenderer;
         float bx = hudButtonX();
@@ -247,8 +275,13 @@ public final class ClickGuiScreen extends Screen {
         Render2D.roundedRect(ctx, bx, by, 70, 16, 8, hover ? ColorUtil.withAlpha(Theme.accent(), 190) : Theme.panel());
         String label = "✎ Edit HUD";
         ctx.drawText(tr, label, (int) (bx + 35 - tr.getWidth(label) / 2f), (int) by + 4, Theme.TEXT, false);
-        String hint = "Left: toggle · Right: settings · Drag headers · ↑↓ Enter: navigate · Esc: close";
-        if (tr.getWidth(hint) < bx - 16) ctx.drawText(tr, hint, 8, (int) by + 4, ColorUtil.withAlpha(Theme.SUBTEXT, 170), false);
+        float kx = keysButtonX();
+        boolean keysHover = overKeysButton(mx, my);
+        Render2D.roundedRect(ctx, kx, by, 70, 16, 8, keysHover ? ColorUtil.withAlpha(Theme.accent(), 190) : Theme.panel());
+        String keys = "⌨ Keybinds";
+        ctx.drawText(tr, keys, (int) (kx + 35 - tr.getWidth(keys) / 2f), (int) by + 4, Theme.TEXT, false);
+        String hint = "Left: toggle · Right: settings · Middle: pin · Drag headers · ↑↓ Enter: navigate · Esc: close";
+        if (tr.getWidth(hint) < kx - 16) ctx.drawText(tr, hint, 8, (int) by + 4, ColorUtil.withAlpha(Theme.SUBTEXT, 170), false);
         String brand = "Aurora " + AuroraClient.version() + " · " + AuroraClient.config().getActiveProfile();
         ctx.drawText(tr, brand, (int) (guiWidth() - 8 - tr.getWidth(brand)), (int) by - 12, ColorUtil.withAlpha(Theme.MUTED, 200), false);
     }
@@ -303,6 +336,10 @@ public final class ClickGuiScreen extends Screen {
         searchFocused = false;
         if (overHudButton(mx, my) && button == 0 && client != null) {
             client.setScreen(new HudEditorScreen(this));
+            return true;
+        }
+        if (overKeysButton(mx, my) && button == 0 && client != null) {
+            client.setScreen(new KeybindsScreen(this));
             return true;
         }
         for (int i = panels.size() - 1; i >= 0; i--) {

@@ -6,10 +6,15 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import dev.aurora.client.AuroraClient;
 import dev.aurora.client.config.ConfigManager;
 import dev.aurora.client.config.LoadReport;
+import dev.aurora.client.config.ThemeIO;
+import dev.aurora.client.gui.CrosshairEditorScreen;
+import dev.aurora.client.gui.KeybindsScreen;
+import dev.aurora.client.hud.HudLayouts;
 import dev.aurora.client.gui.ClickGuiScreen;
 import dev.aurora.client.gui.HudEditorScreen;
 import dev.aurora.client.module.Module;
 import dev.aurora.client.module.modules.misc.ClickGui;
+import dev.aurora.client.module.modules.visuals.HudTheme;
 import dev.aurora.client.setting.KeybindSetting;
 import dev.aurora.client.util.KeyNames;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -41,7 +46,33 @@ public final class AuroraCommands {
         return builder.buildFuture();
     };
 
+    private static final SuggestionProvider<FabricClientCommandSource> LAYOUTS = (ctx, builder) -> {
+        for (String l : layouts().list()) builder.suggest(l);
+        return builder.buildFuture();
+    };
+
     private AuroraCommands() {
+    }
+
+    private static HudLayouts layouts() {
+        return new HudLayouts(AuroraClient.config().getRoot().resolve("layouts"));
+    }
+
+    private static ClickGui clickGui() {
+        return AuroraClient.modules().get(ClickGui.class);
+    }
+
+    private static HudTheme hudTheme() {
+        return AuroraClient.modules().get(HudTheme.class);
+    }
+
+    private static int importTheme(FabricClientCommandSource source, String json, String from) {
+        try {
+            int n = ThemeIO.importString(json, clickGui(), hudTheme());
+            return ok(source, "Theme imported from " + from + " (" + n + " values)");
+        } catch (IllegalArgumentException e) {
+            return error(source, "The " + from + " does not hold an Aurora theme");
+        }
     }
 
     public static void register() {
@@ -93,6 +124,59 @@ public final class AuroraCommands {
                 mc.send(() -> mc.setScreen(new HudEditorScreen(null)));
                 return 1;
             }))
+            .then(literal("keybinds").executes(ctx -> {
+                MinecraftClient mc = MinecraftClient.getInstance();
+                mc.send(() -> mc.setScreen(new KeybindsScreen(null)));
+                return 1;
+            }))
+            .then(literal("crosshair").executes(ctx -> {
+                MinecraftClient mc = MinecraftClient.getInstance();
+                mc.send(() -> mc.setScreen(new CrosshairEditorScreen(null)));
+                return 1;
+            }))
+            .then(literal("theme")
+                .then(literal("export").executes(ctx -> {
+                    try {
+                        Path file = ThemeIO.exportTo(AuroraClient.config().getRoot().resolve("themes"), clickGui(), hudTheme());
+                        MinecraftClient.getInstance().keyboard.setClipboard(ThemeIO.exportString(clickGui(), hudTheme()));
+                        return ok(ctx.getSource(), "Theme exported to " + file.toAbsolutePath() + " and copied to the clipboard");
+                    } catch (IOException e) {
+                        return error(ctx.getSource(), "Export failed: " + e.getMessage());
+                    }
+                }))
+                .then(literal("import")
+                    .executes(ctx -> importTheme(ctx.getSource(), MinecraftClient.getInstance().keyboard.getClipboard(), "clipboard"))
+                    .then(argument("file", StringArgumentType.greedyString()).executes(ctx -> {
+                        Path dir = AuroraClient.config().getRoot().resolve("themes");
+                        Path file = dir.resolve(StringArgumentType.getString(ctx, "file")).normalize();
+                        if (!file.startsWith(dir) || !Files.isRegularFile(file)) return error(ctx.getSource(), "File not found in " + dir);
+                        try {
+                            return importTheme(ctx.getSource(), Files.readString(file), file.getFileName().toString());
+                        } catch (IOException e) {
+                            return error(ctx.getSource(), "Could not read " + file.getFileName());
+                        }
+                    }))))
+            .then(literal("layout")
+                .then(literal("list").executes(ctx -> ok(ctx.getSource(), "Layouts: " + String.join(", ", layouts().list()))))
+                .then(literal("save").then(argument("name", StringArgumentType.word()).executes(ctx -> {
+                    String name = StringArgumentType.getString(ctx, "name");
+                    if (!HudLayouts.isValidName(name)) return error(ctx.getSource(), "Invalid name (letters, digits, - and _)");
+                    try {
+                        layouts().save(name, AuroraClient.hud().getElements());
+                        return ok(ctx.getSource(), "Saved HUD layout " + name);
+                    } catch (IOException e) {
+                        return error(ctx.getSource(), "Saving failed: " + e.getMessage());
+                    }
+                })))
+                .then(literal("load").then(argument("name", StringArgumentType.word()).suggests(LAYOUTS).executes(ctx -> {
+                    String name = StringArgumentType.getString(ctx, "name");
+                    try {
+                        int n = layouts().load(name, AuroraClient.hud().getElements());
+                        return ok(ctx.getSource(), "Loaded HUD layout " + name + " (" + n + " elements)");
+                    } catch (IOException | IllegalArgumentException e) {
+                        return error(ctx.getSource(), "No valid layout named " + name);
+                    }
+                }))))
             .then(literal("profile")
                 .then(literal("list").executes(ctx -> {
                     ConfigManager cfg = AuroraClient.config();
@@ -172,7 +256,8 @@ public final class AuroraCommands {
     private static int help(FabricClientCommandSource source) {
         source.sendFeedback(Text.literal("Aurora commands:").formatted(Formatting.LIGHT_PURPLE));
         source.sendFeedback(Text.literal(" /aurora toggle|bind|unbind|reset <module> [key]"));
-        source.sendFeedback(Text.literal(" /aurora list | gui | hud"));
+        source.sendFeedback(Text.literal(" /aurora list | gui | hud | keybinds | crosshair"));
+        source.sendFeedback(Text.literal(" /aurora theme export|import [file] · /aurora layout list|save|load <name>"));
         source.sendFeedback(Text.literal(" /aurora profile list|save|load|create|delete|export|import"));
         return 1;
     }

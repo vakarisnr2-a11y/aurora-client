@@ -3,9 +3,11 @@ package dev.aurora.client.gui.component;
 import dev.aurora.client.AuroraClient;
 import dev.aurora.client.config.ConfigManager;
 import dev.aurora.client.config.LoadReport;
+import dev.aurora.client.config.ThemeIO;
 import dev.aurora.client.gui.ClickGuiScreen;
 import dev.aurora.client.gui.Theme;
 import dev.aurora.client.module.modules.misc.ClickGui;
+import dev.aurora.client.module.modules.visuals.HudTheme;
 import dev.aurora.client.notification.NotificationManager;
 import dev.aurora.client.render.Render2D;
 import dev.aurora.client.util.ColorUtil;
@@ -91,25 +93,33 @@ public final class ProfilesPanel extends Panel {
     }
 
     private final class Actions extends Component {
-        private static final String[] LABELS = {"Save", "New", "Export", "Import", "Folder", "Reset"};
+        private static final String[] LABELS = {"Save", "New", "Export", "Import", "Folder", "Reset", "Theme Out", "Theme In"};
         private static final String[] TIPS = {
             "Save the active profile now (it also autosaves)",
             "Create a new profile from the current settings",
             "Write the profile to config/aurora/exports and copy it to the clipboard",
             "Import a profile from JSON in the clipboard",
             "Open the config folder",
-            "Reset every module of this profile to defaults (click twice)"};
+            "Reset every module of this profile to defaults (click twice)",
+            "Export the ClickGUI and HUD Theme look to config/aurora/themes and the clipboard",
+            "Import a look (ClickGUI and HUD Theme) from JSON in the clipboard"};
         private long resetArmedUntil;
 
         @Override
         public float getHeight() {
-            return 36;
+            return 52;
+        }
+
+        /** Two rows of three buttons, then a row of two (the theme buttons). */
+        private int columns(int row) {
+            return row < 2 ? 3 : 2;
         }
 
         private int indexAt(double mx, double my) {
             if (!isHovered(mx, my)) return -1;
-            int col = (int) ((mx - x) / (width / 3));
             int row = (int) ((my - y - 2) / 16);
+            if (row < 0 || row > 2) return -1;
+            int col = (int) ((mx - x) / (width / columns(row)));
             int i = row * 3 + col;
             return i >= 0 && i < LABELS.length ? i : -1;
         }
@@ -118,10 +128,11 @@ public final class ProfilesPanel extends Panel {
         public void render(DrawContext ctx, double mx, double my, float delta) {
             TextRenderer tr = MinecraftClient.getInstance().textRenderer;
             int hovered = screen.isMouseInBody() ? indexAt(mx, my) : -1;
-            float bw = width / 3;
             for (int i = 0; i < LABELS.length; i++) {
+                int row = i / 3;
+                float bw = width / columns(row);
                 float bx = x + (i % 3) * bw + 1;
-                float by = y + 2 + (i / 3) * 16;
+                float by = y + 2 + row * 16;
                 boolean armed = i == 5 && System.currentTimeMillis() < resetArmedUntil;
                 int bg = armed ? 0xFF7F1D1D : i == hovered ? ColorUtil.withAlpha(Theme.accent(), 110) : Theme.surface();
                 Render2D.roundedRect(ctx, bx, by, bw - 2, 14, 3, bg);
@@ -165,6 +176,23 @@ public final class ProfilesPanel extends Panel {
                     }
                 }
                 case 4 -> Util.getOperatingSystem().open(cfg.getRoot());
+                case 6 -> {
+                    try {
+                        Path file = ThemeIO.exportTo(cfg.getRoot().resolve("themes"), screen.settings(), AuroraClient.modules().get(HudTheme.class));
+                        mc.keyboard.setClipboard(ThemeIO.exportString(screen.settings(), AuroraClient.modules().get(HudTheme.class)));
+                        toast("Theme exported", "themes/" + file.getFileName() + " + clipboard", NotificationManager.Type.SUCCESS);
+                    } catch (IOException e) {
+                        toast("Export failed", e.getMessage(), NotificationManager.Type.ERROR);
+                    }
+                }
+                case 7 -> {
+                    try {
+                        int n = ThemeIO.importString(mc.keyboard.getClipboard(), screen.settings(), AuroraClient.modules().get(HudTheme.class));
+                        toast("Theme imported", n + " values applied", NotificationManager.Type.SUCCESS);
+                    } catch (IllegalArgumentException e) {
+                        toast("Import failed", "Clipboard does not hold an Aurora theme", NotificationManager.Type.ERROR);
+                    }
+                }
                 case 5 -> {
                     if (System.currentTimeMillis() < resetArmedUntil) {
                         AuroraClient.modules().getAll().forEach(m -> {

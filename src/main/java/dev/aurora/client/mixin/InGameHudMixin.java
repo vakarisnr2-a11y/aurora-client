@@ -4,6 +4,7 @@ import dev.aurora.client.AuroraClient;
 import dev.aurora.client.module.modules.utility.PotionEffects;
 import dev.aurora.client.module.modules.visuals.Crosshair;
 import dev.aurora.client.module.modules.visuals.HotbarStyle;
+import dev.aurora.client.module.modules.visuals.ScoreboardHud;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.hud.InGameHud;
 import net.minecraft.client.render.RenderTickCounter;
@@ -36,5 +37,13 @@ public abstract class InGameHudMixin {
         if (style != null && style.isEnabled() && texture.getNamespace().equals(Identifier.DEFAULT_NAMESPACE)
             && style.draw(context, texture.getPath(), x, y, width, height)) return;
         context.drawGuiTexture(texture, x, y, width, height);
+    }
+
+    /** The outer sidebar method (picks the objective, then draws it); the Scoreboard HUD draws it instead. */
+    @Inject(method = "renderScoreboardSidebar(Lnet/minecraft/client/gui/DrawContext;Lnet/minecraft/client/render/RenderTickCounter;)V",
+        at = @At("HEAD"), cancellable = true)
+    private void aurora$scoreboard(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
+        ScoreboardHud scoreboard = AuroraClient.module(ScoreboardHud.class);
+        if (scoreboard != null && scoreboard.isEnabled()) ci.cancel();
     }
 }

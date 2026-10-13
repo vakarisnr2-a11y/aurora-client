@@ -9,14 +9,21 @@ import dev.aurora.client.setting.ColorSetting;
 import dev.aurora.client.setting.EnumSetting;
 import dev.aurora.client.setting.NumberSetting;
 import dev.aurora.client.setting.Setting;
+import dev.aurora.client.setting.StringSetting;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 
 /** Opens the ClickGUI and stores every theme / layout setting of it. */
 public final class ClickGui extends Module {
     public static final String PROFILES_PANEL = "PROFILES";
+    public static final String FAVORITES_PANEL = "FAVORITES";
 
     private final EnumSetting<Theme.Preset> preset = add(new EnumSetting<>("Theme",
         "Color theme of the GUI, HUD and notifications", Theme.Preset.MIDNIGHT));
@@ -30,6 +37,8 @@ public final class ClickGui extends Module {
     private final BooleanSetting tooltips = add(new BooleanSetting("Tooltips", "Show descriptions when hovering modules and settings", true));
     private final BooleanSetting pauseGame = add(new BooleanSetting("Pause Singleplayer", "Pause the integrated server while the GUI is open", false));
 
+    private final StringSetting favorites = add(new StringSetting("Favorites", "Ids of pinned modules", "", 4096)).hide();
+
     private final Map<String, NumberSetting> panelX = new HashMap<>();
     private final Map<String, NumberSetting> panelY = new HashMap<>();
     private final Map<String, BooleanSetting> panelOpen = new HashMap<>();
@@ -39,6 +48,7 @@ public final class ClickGui extends Module {
             GLFW.GLFW_KEY_RIGHT_SHIFT, false);
         for (Category c : Category.values()) addPanel(c.name());
         addPanel(PROFILES_PANEL);
+        addPanel(FAVORITES_PANEL);
     }
 
     private void addPanel(String key) {
@@ -123,5 +133,35 @@ public final class ClickGui extends Module {
 
     public BooleanSetting panelOpen(String key) {
         return panelOpen.get(key);
+    }
+
+    // ------------------------------------------------------------------ favorites
+
+    public boolean isFavorite(Module module) {
+        return parseFavorites(favorites.get()).contains(module.getId());
+    }
+
+    /** Pins or unpins a module; returns true if it is now a favorite. */
+    public boolean toggleFavorite(Module module) {
+        Set<String> ids = parseFavorites(favorites.get());
+        boolean now = !ids.remove(module.getId());
+        if (now) ids.add(module.getId());
+        favorites.set(String.join(",", ids));
+        return now;
+    }
+
+    /** Favorite module ids in the order they were pinned. */
+    public List<String> favoriteIds() {
+        return new ArrayList<>(parseFavorites(favorites.get()));
+    }
+
+    /** Splits the stored comma-separated ids, ignoring blanks and duplicates. */
+    public static Set<String> parseFavorites(String raw) {
+        Set<String> out = new LinkedHashSet<>();
+        for (String part : raw.split(",")) {
+            String id = part.trim().toLowerCase(Locale.ROOT);
+            if (!id.isEmpty()) out.add(id);
+        }
+        return out;
     }
 }
