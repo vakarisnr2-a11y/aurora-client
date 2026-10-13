@@ -7,7 +7,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.Constant;
 import org.spongepowered.asm.mixin.injection.ModifyConstant;
 
-/** The player inventory draws its own "Crafting" title: light on the Aurora Bedwars pack's dark inventory. */
+/** The player inventory draws its own "Crafting" title: light on the bundled pack's transparent inventory. */
 @Mixin(InventoryScreen.class)
 public abstract class InventoryScreenMixin {
     @ModifyConstant(method = "drawForeground", constant = @Constant(intValue = BedwarsPack.VANILLA_TITLE))

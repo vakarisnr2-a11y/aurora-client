@@ -6,7 +6,16 @@ import net.fabricmc.fabric.api.resource.ResourcePackActivationType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.ingame.AnvilScreen;
+import net.minecraft.client.gui.screen.ingame.BeaconScreen;
+import net.minecraft.client.gui.screen.ingame.BrewingStandScreen;
+import net.minecraft.client.gui.screen.ingame.CraftingScreen;
+import net.minecraft.client.gui.screen.ingame.EnchantmentScreen;
+import net.minecraft.client.gui.screen.ingame.FurnaceScreen;
+import net.minecraft.client.gui.screen.ingame.Generic3x3ContainerScreen;
 import net.minecraft.client.gui.screen.ingame.GenericContainerScreen;
+import net.minecraft.client.gui.screen.ingame.HopperScreen;
+import net.minecraft.client.gui.screen.ingame.HorseScreen;
 import net.minecraft.client.gui.screen.ingame.InventoryScreen;
 import net.minecraft.resource.ResourcePackManager;
 import net.minecraft.resource.ResourcePackProfile;
@@ -14,7 +23,8 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 
 /**
- * Registers the bundled "Aurora Bedwars" resource pack (src/main/resources/resourcepacks/aurora_bedwars).
+ * Registers the bundled Bedwars resource pack, "3Supay 16x" (src/main/resources/resourcepacks/aurora_bedwars), a 1.8.9
+ * PvP pack converted to 1.21.1 with tools/PackConverter.java.
  * It appears in Options > Resource Packs and can also be switched with the Bedwars Pack module.
  */
 public final class BedwarsPack {
@@ -30,7 +40,7 @@ public final class BedwarsPack {
     public static void register() {
         FabricLoader.getInstance().getModContainer(AuroraClient.MOD_ID).ifPresent(container -> {
             boolean ok = ResourceManagerHelper.registerBuiltinResourcePack(ID, container,
-                Text.literal("Aurora Bedwars"), ResourcePackActivationType.NORMAL);
+                Text.literal("3Supay 16x"), ResourcePackActivationType.NORMAL);
             if (!ok) AuroraClient.LOGGER.warn("Could not register the built-in Bedwars resource pack");
         });
     }
@@ -53,13 +63,21 @@ public final class BedwarsPack {
     }
 
     /**
-     * Title color for a container screen: the pack draws the inventory and chest screens dark, so their titles
-     * switch to a light color while it is active. Other screens keep their vanilla look and color.
+     * Title color for a container screen. The bundled pack draws these container screens with transparent panels
+     * over the game's dark backdrop, so their titles switch to a light color while it is active. Screens the pack
+     * does not restyle (creative inventory, villager trading, loom, ...) keep vanilla's look and color.
      */
     public static int titleColor(Screen screen, int color) {
-        if (color != VANILLA_TITLE) return color;
-        boolean themed = screen instanceof GenericContainerScreen || screen instanceof InventoryScreen;
-        return themed && isActive() ? THEMED_TITLE : color;
+        if (color != VANILLA_TITLE || !isRestyled(screen)) return color;
+        return isActive() ? THEMED_TITLE : color;
+    }
+
+    /** Container screens whose background texture comes from the bundled pack. */
+    static boolean isRestyled(Screen screen) {
+        return screen instanceof InventoryScreen || screen instanceof GenericContainerScreen || screen instanceof CraftingScreen
+            || screen instanceof FurnaceScreen || screen instanceof Generic3x3ContainerScreen || screen instanceof HopperScreen
+            || screen instanceof EnchantmentScreen || screen instanceof AnvilScreen || screen instanceof BrewingStandScreen
+            || screen instanceof BeaconScreen || screen instanceof HorseScreen;
     }
 
     /** Enables or disables the pack and reloads resources if the selection changed. */

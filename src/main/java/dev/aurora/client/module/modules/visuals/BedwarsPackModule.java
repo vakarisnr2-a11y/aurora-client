@@ -6,10 +6,10 @@ import dev.aurora.client.module.Module;
 import dev.aurora.client.notification.NotificationManager;
 import dev.aurora.client.pack.BedwarsPack;
 
-/** Switches the bundled Aurora Bedwars resource pack on and off (triggers a resource reload). */
+/** Switches the bundled Bedwars resource pack (3Supay 16x) on and off (triggers a resource reload). */
 public final class BedwarsPackModule extends Module {
     public BedwarsPackModule() {
-        super("Bedwars Pack", "Enables the bundled Aurora Bedwars texture pack (short swords, Aurora blocks, beds and a dark GUI).",
+        super("Bedwars Pack", "Enables the bundled 3Supay 16x Bedwars texture pack (short swords, clean blocks, clear GUI).",
             Category.VISUALS);
     }
 

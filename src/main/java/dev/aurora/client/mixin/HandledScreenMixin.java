@@ -24,7 +24,7 @@ public abstract class HandledScreenMixin {
         if (lock != null && lock.isEnabled()) lock.renderSlot(context, slot, MinecraftClient.getInstance().player);
     }
 
-    /** Container and inventory titles: light on the Aurora Bedwars pack's dark chest screen. */
+    /** Container titles: light on the bundled pack's transparent container screens (see BedwarsPack#titleColor). */
     @ModifyConstant(method = "drawForeground", constant = @Constant(intValue = BedwarsPack.VANILLA_TITLE))
     private int aurora$titleColor(int color) {
         return BedwarsPack.titleColor((Screen) (Object) this, color);
