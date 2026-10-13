@@ -39,22 +39,23 @@ class HudOverhaulTest {
     // ------------------------------------------------------------------ HUD Theme
 
     @Test
-    void hudThemeIsRegisteredOffByDefaultAndNotAHudElement() {
+    void hudThemeIsRegisteredOnByDefaultAndNotAHudElement() {
         ModuleManager manager = manager();
         HudTheme theme = manager.get(HudTheme.class);
-        assertFalse(theme.isEnabledByDefault());
+        assertTrue(theme.isEnabledByDefault(), "the new look is visible right away");
         assertFalse(new HudRenderer(manager).getElements().contains(theme));
     }
 
     @Test
     @SuppressWarnings("unchecked")
-    void presetsWriteEveryValueAndOffMeansDark() {
+    void presetsWriteEveryValueAndOffMeansAurora() {
         HudTheme theme = new HudTheme();
         EnumSetting<HudTheme.Preset> preset = (EnumSetting<HudTheme.Preset>) theme.getSetting("Preset");
-        // While disabled the getters return the defaults (the Dark look) whatever the settings hold.
+        assertEquals(HudTheme.Preset.AURORA, preset.get());
+        // While disabled the getters return the defaults (the Aurora look) whatever the settings hold.
         preset.set(HudTheme.Preset.NEON);
-        assertFalse(theme.outline());
-        assertEquals(HudTheme.AccentBar.BOTTOM, theme.accentBar());
+        assertFalse(theme.glow());
+        assertEquals(HudTheme.AccentBar.NONE, theme.accentBar());
 
         theme.setEnabled(true);
         assertTrue(theme.outline());
@@ -76,6 +77,11 @@ class HudOverhaulTest {
 
         preset.set(HudTheme.Preset.DARK);
         assertTrue(theme.shadow());
+        assertFalse(theme.outline());
+        assertEquals(HudTheme.AccentBar.BOTTOM, theme.accentBar());
+
+        preset.set(HudTheme.Preset.AURORA);
+        assertTrue(theme.outline());
         assertEquals(4, theme.padding());
         for (var s : theme.getSettings()) {
             if (s != theme.getKeybind() && !s.getName().equals("Show in List")) assertTrue(s.isDefault(), s.getName() + " should be default");

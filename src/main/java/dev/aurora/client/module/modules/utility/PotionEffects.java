@@ -7,7 +7,6 @@ import dev.aurora.client.module.Category;
 import dev.aurora.client.setting.BooleanSetting;
 import dev.aurora.client.util.ColorUtil;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.texture.Sprite;
 import net.minecraft.entity.effect.StatusEffectCategory;
@@ -35,7 +34,7 @@ public final class PotionEffects extends HudModule {
     private final SmoothBox box = new SmoothBox();
 
     public PotionEffects() {
-        super("Potion Effects", "Lists your active effects with time remaining.", Category.UTILITY, 1.0, 0.45, true);
+        super("Potion Effects", "Lists your active effects with time remaining.", Category.UTILITY, 1.0, 0.30, true);
     }
 
     public boolean hidesVanilla() {
@@ -45,7 +44,6 @@ public final class PotionEffects extends HudModule {
     @Override
     public void render(DrawContext ctx, float tickDelta, boolean editor) {
         MinecraftClient mc = MinecraftClient.getInstance();
-        TextRenderer tr = mc.textRenderer;
         effects.clear();
         if (mc.player != null) effects.addAll(mc.player.getStatusEffects());
         effects.sort(LONGEST_FIRST);
@@ -55,7 +53,7 @@ public final class PotionEffects extends HudModule {
             if (editor) {
                 String name = "Speed II";
                 String time = "1:30";
-                int w = tr.getWidth(name) + pad * 2;
+                int w = HudStyle.width(name) + pad * 2;
                 box.update(w, ROW + pad);
                 if (background.get()) HudStyle.background(ctx, 0, 0, box.width(), box.height());
                 HudStyle.text(ctx, name, pad, pad / 2f + 2, 0xFF86EFAC);
@@ -67,7 +65,7 @@ public final class PotionEffects extends HudModule {
             return;
         }
         int maxW = 0;
-        for (StatusEffectInstance e : effects) maxW = Math.max(maxW, tr.getWidth(name(e)));
+        for (StatusEffectInstance e : effects) maxW = Math.max(maxW, HudStyle.width(name(e)));
         int iconW = icons.get() ? ICON + 3 : 0;
         int width = maxW + iconW + pad * 2;
         int top = pad / 2;
@@ -86,12 +84,12 @@ public final class PotionEffects extends HudModule {
             }
             int color = !typeColors.get() ? HudStyle.text()
                 : e.getEffectType().value().getCategory() == StatusEffectCategory.HARMFUL ? 0xFFF87171 : 0xFF86EFAC;
-            float textX = right ? boxW - pad - iconW - tr.getWidth(name) : pad + iconW;
+            float textX = right ? boxW - pad - iconW - HudStyle.width(name) : pad + iconW;
             HudStyle.text(ctx, name, textX, y + 2, color);
             String time = duration(e);
             boolean expiring = !e.isInfinite() && e.getDuration() < 200;
             int timeColor = expiring ? ColorUtil.lerp(sub, 0xFFF87171, (float) (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 120.0))) : sub;
-            float timeX = right ? boxW - pad - iconW - tr.getWidth(time) : pad + iconW;
+            float timeX = right ? boxW - pad - iconW - HudStyle.width(time) : pad + iconW;
             HudStyle.text(ctx, time, timeX, y + 11, timeColor);
         }
         setSize(box.intWidth(), box.intHeight());

@@ -6,7 +6,6 @@ import dev.aurora.client.module.Category;
 import dev.aurora.client.setting.BooleanSetting;
 import dev.aurora.client.setting.NumberSetting;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -28,7 +27,7 @@ public final class ArrowCounter extends HudModule {
     private ItemStack icon;
 
     public ArrowCounter() {
-        super("Arrow Counter", "Shows how many arrows you carry.", Category.COMBAT, 1.0, 0.62, false);
+        super("Arrow Counter", "Shows how many arrows you carry.", Category.COMBAT, 1.0, 0.50, false);
     }
 
     @Override
@@ -42,9 +41,8 @@ public final class ArrowCounter extends HudModule {
         }
         int count = p == null ? SAMPLE_COUNT : countArrows(p.getInventory());
         if (icon == null) icon = new ItemStack(Items.ARROW);
-        TextRenderer tr = mc.textRenderer;
         String text = String.valueOf(count);
-        int width = PAD + ICON + 2 + tr.getWidth(text) + PAD + 1;
+        int width = PAD + ICON + 2 + HudStyle.width(text) + PAD + 1;
         int height = ICON + PAD * 2;
         if (background.get()) HudStyle.background(ctx, 0, 0, width, height);
         ctx.drawItem(icon, PAD, PAD);

@@ -9,7 +9,6 @@ import dev.aurora.client.util.Animation;
 import dev.aurora.client.util.ColorUtil;
 import dev.aurora.client.util.CpsTracker;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.KeyBinding;
@@ -58,7 +57,6 @@ public final class Keystrokes extends HudModule {
     }
 
     private void key(DrawContext ctx, int index, KeyBinding binding, int x, int y, int w, int h, String sub) {
-        TextRenderer tr = MinecraftClient.getInstance().textRenderer;
         Animation a = presses[index];
         a.setTarget(binding.isPressed() ? 1 : 0);
         float p = (float) a.update();
@@ -76,13 +74,13 @@ public final class Keystrokes extends HudModule {
         int textColor = ColorUtil.lerp(HudStyle.text(), 0xFF101014, p * 0.8f);
         boolean shadow = HudStyle.textShadow() && p < 0.5f; // no light shadow under dark text on a pressed key
         if (sub == null) {
-            HudStyle.text(ctx, label, x + (w - tr.getWidth(label)) / 2f, y + (h - 7) / 2f, textColor, shadow);
+            HudStyle.text(ctx, label, x + (w - HudStyle.width(label)) / 2f, y + (h - 7) / 2f, textColor, shadow);
         } else {
-            HudStyle.text(ctx, label, x + (w - tr.getWidth(label)) / 2f, y + h / 2f - 8, textColor, shadow);
+            HudStyle.text(ctx, label, x + (w - HudStyle.width(label)) / 2f, y + h / 2f - 8, textColor, shadow);
             ctx.getMatrices().push();
             ctx.getMatrices().translate(x + w / 2f, y + h / 2f + 2, 0);
             ctx.getMatrices().scale(0.6f, 0.6f, 1);
-            HudStyle.text(ctx, sub, -tr.getWidth(sub) / 2f, 0, textColor, shadow);
+            HudStyle.text(ctx, sub, -HudStyle.width(sub) / 2f, 0, textColor, shadow);
             ctx.getMatrices().pop();
         }
     }

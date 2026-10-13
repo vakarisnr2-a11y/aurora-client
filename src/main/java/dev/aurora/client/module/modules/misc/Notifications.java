@@ -31,6 +31,11 @@ public final class Notifications extends Module {
     }
 
     @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
+    @Override
     public boolean notifiesOnToggle() {
         return false;
     }

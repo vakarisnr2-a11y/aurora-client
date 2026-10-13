@@ -50,6 +50,11 @@ public final class ChatMentions extends Module {
         super("Chat Mentions", "Highlights chat messages that mention your name, with an optional sound.", Category.MISC);
     }
 
+    @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
     /** The indicator bar for mention messages (rebuilt when the color changes). */
     public MessageIndicator indicator() {
         int c = color.get() & 0xFFFFFF;

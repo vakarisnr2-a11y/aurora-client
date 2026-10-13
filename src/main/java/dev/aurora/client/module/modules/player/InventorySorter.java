@@ -60,6 +60,11 @@ public final class InventorySorter extends Module {
         });
     }
 
+    @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
     private boolean trySort() {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.player == null || mc.interactionManager == null || !(mc.currentScreen instanceof HandledScreen<?> screen)) return false;

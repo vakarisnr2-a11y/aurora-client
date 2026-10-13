@@ -114,10 +114,11 @@ crosshair, Totem Pops top left of center).
 
 ## 1.1.0
 
-Version 1.1.0 (`mod_version=1.1.0`) contains Parts 1–3 below: the HUD overhaul, Batch C and Batch D, 18 new modules
-(72 in total) and upgrades to Zoom, Screenshot, Crosshair, the ClickGUI and the HUD editor. **Nothing in 1.1.0 was
-tested in-game**: it compiles, 85 unit tests pass, all mixin targets were checked with `javap` and a headless dev
-client applied every mixin and drew the new screens, but no world or server was joined.
+Version 1.1.0 (`mod_version=1.1.0`) contains Parts 1–4 below: the HUD overhaul, Batch C, Batch D and the UI
+redesign, 18 new modules (72 in total) and upgrades to Zoom, Screenshot, Crosshair, the ClickGUI and the HUD editor.
+**Nothing in 1.1.0 was play-tested**: it compiles, 92 unit tests pass, all mixin targets were checked with `javap` and
+a headless dev client applied every mixin, drew the new screens and joined a generated singleplayer world for
+screenshots (Part 4). No server was joined and nobody played with it.
 
 ## 1.1.0 Part 1: HUD overhaul
 
@@ -248,3 +249,110 @@ Known limitations:
   startup stays vanilla; later reloads (resource packs, F3+T) use the Aurora look. The Aurora main menu does not show
   buttons that other mods add to the vanilla title screen (use "Vanilla menu").
 - Image copy needs PowerShell (Windows), osascript (macOS) or wl-copy/xclip (Linux).
+
+## 1.1.0 Part 4: UI redesign
+
+> **Not play-tested.** Compiles and the new game-independent logic is unit-tested (`UiRedesignTest`: profile
+> migration, font selection, defaults). A headless dev client (Xvfb, no sound device) with a temporary, uncommitted
+> hook took screenshots of the main menu, ClickGUI (module grid and a settings page), keybind overview, HUD editor,
+> crosshair editor, and, in a generated flat singleplayer world, the HUD, chat, notifications, the ClickGUI over the
+> world and the HUD editor. Those screenshots led to the layout fixes listed below. No server was joined; hovering,
+> dragging and typing were only exercised as far as the screenshots show.
+
+### The new look
+One design system for every Aurora screen (`gui/ui/Ui`, `UiFont`, `Icons`): a dark night palette (window, sidebar,
+raised cards, recessed fields) tinted by the ClickGUI theme preset (Midnight by default; Ocean, Sakura, Emerald,
+Crimson and Graphite tint everything the same way), one accent color, hairline borders, soft shadows, rounded corners
+in three sizes (4/6/10) and 8/12 px spacing.
+
+- **Font**: Poppins Medium and SemiBold (SIL Open Font License 1.1, bundled with its license in `licenses/`) in two
+  sizes: body text about the height of Minecraft's font and 13 px titles, in regular and bold. Minecraft draws
+  TrueType glyphs from a fixed-resolution atlas, so each size is defined at 1x/2x/3x/4x/6x oversampling and the one
+  matching the current GUI scale (and any scaling such as the ClickGUI open animation) is used. Text stays sharp at
+  every GUI scale. Characters Poppins does not have (arrows, symbols, non-Latin scripts) fall back to Minecraft's font.
+- **ClickGUI**, completely rebuilt (`gui/ClickGuiScreen` and `gui/clickgui/*`; the old floating category panels
+  are gone):
+  - A centered window over a blurred (Blur setting) and dimmed world. It scales and fades in on open and out on
+    close.
+  - **Sidebar** with the logo, version and drawn category icons (Combat, Visuals, Movement, Player, World, Utility,
+    Misc) plus Favorites. Each category shows how many of its modules are on, and an accent indicator slides to the
+    selected one. Under "Client": Profiles, Edit HUD and Keybinds. The active profile is shown at the bottom.
+  - **Search bar** in the header: type anywhere, or Ctrl+F, to search every module by name or description.
+    Right-click clears it, Esc clears and then closes.
+  - **Module cards** in a two-column grid (one column in small windows). Each card has the name, a
+    one-line description, an animated **toggle switch**, the keybind as a chip, a ★ for favorites and a gear.
+    Click toggles, right-click or the gear opens settings, and middle-click or Shift+click pins to Favorites. Cards
+    lift and light up on hover; enabled cards get an accent border. Descriptions show as a tooltip after a short
+    hover (Tooltips setting). The grid scrolls smoothly.
+  - **Settings page** slides in over the grid with a back button, the module's description and its on/off switch.
+    Controls:
+    - switches;
+    - sliders with an accent fill and value badge;
+    - segmented buttons for short choices and an animated dropdown for longer ones;
+    - a color picker with a saturation/brightness square, hue bar, alpha bar (where allowed), hex value and Rainbow;
+    - keybind buttons (click, then press a key or mouse button; Backspace clears; the Toggle/Hold chip switches
+      the mode);
+    - text fields.
+
+    Settings that don't apply right now (e.g. Shadow Size with Shadow off) are hidden.
+  - **Profiles page**: the profile list (click to load, right-click twice to delete) and Save, New, Export, Import,
+    Folder, Reset, Export Theme, Import Theme as buttons.
+- **HUD Theme is on by default** with the new **Aurora** preset: a translucent night background, 5 px corners, a
+  soft shadow, a hairline outline, no accent bar and 4 px padding. Dark, Glass, Minimal and Neon are still there.
+  New **Font** setting: Aurora (Poppins, same as the menus, the default) or Minecraft's pixel font. All HUD elements
+  measure and draw text through the HUD style, so layouts fit either font. Turning HUD Theme off still gives the
+  Aurora defaults.
+- **HUD editor**: toolbar of rounded pill buttons (Grid, Snap, Elements ▾, Layouts ▾, Reset All, Done) with
+  dropdowns in the new style. The selected element gets an accent outline and a label chip (name · scale · anchor).
+  A hint bar at the bottom lists the shortcuts.
+- **Keybind overview**: one window with All / Bound / Conflicts (n) tabs, rows that light up on hover, key buttons,
+  conflicts in amber with a "n conflicting binds" badge, and a hint footer.
+- **Crosshair editor**: same window style. Pixel grid, mirror and preset buttons and the live preview are laid out
+  so nothing overflows at GUI scale 2 on 1600x900.
+- **Notifications**: dark cards with a drawn type icon (info, success, warning, error) in a tinted circle, a
+  bold title, the message, rounded action buttons (Open / Copy / Folder for screenshots) and a progress line in the
+  type color. They slide in from the screen edge and stay above the chat input and Chat Search's field while chat is
+  open.
+- **Main menu and loading screens** (Aurora Menu, now **on by default**): the animated aurora backdrop with stars
+  and the new logo, "AURORA" in spaced letters with a gradient, rounded buttons with Singleplayer as the primary
+  accent button, and Realms/Mods and Options/Quit side by side. The world loading/connecting screens use the same
+  backdrop. The resource loading overlay shows the new emblem and an accent progress bar.
+- **New logo** (`tools/LogoGenerator.java`, Java2D, no dependencies): a sharp "A" peak crossed by a sweeping aurora
+  ribbon in a teal → sky → violet → pink gradient, a small four-pointed star and a soft glow. Writes the
+  256x256 emblem `assets/aurora/textures/gui/logo.png` (menus, ClickGUI, splash) and the 128x128 mod icon
+  `assets/aurora/icon.png` (emblem on a dark rounded square). Regenerate with
+  `java -Djava.awt.headless=true tools/LogoGenerator.java src/main/resources/assets/aurora`.
+
+### Defaults and migration
+- The module list only shows modules you'd want to see while playing. 25 modules that are client settings or
+  background helpers (ClickGUI, HUD Editor, HUD Theme, Notifications, chat modules, Aurora Menu, Bedwars Pack,
+  Hotbar Style, Low-End Mode, Unfocused FPS, Item Lock, ...) default to Show in List off. The module list also hides
+  HUD elements by default (new **Hide HUD Elements** setting), since they're visible on screen anyway.
+- Profile format 2. When a format 1 profile is loaded:
+  - Show in List values for those 25 modules are not loaded, so upgraded profiles get the new defaults.
+  - HUD Theme and Aurora Menu get the new defaults (on, Aurora preset) if the profile had them off, which was the
+    old default. A profile that had turned them on keeps its values.
+- New default positions so default HUDs don't overlap each other, the chat or the notifications:
+  - Coordinates: top left under FPS/Ping/CPS, no longer under the chat.
+  - Potion Effects and Armor Status: higher on the right.
+  - Arrow Counter: right side.
+  - Resource Counter: left, under Coordinates.
+  - Target HUD: right of the crosshair instead of on top of Reach/Combo.
+
+  Positions already saved in a profile are unchanged.
+- Removed the hidden ClickGUI panel position settings of the old floating panels (old values in profiles are ignored).
+
+### Fixed after looking at the screenshots
+- HUD text was drawn over the HUD editor's toolbar and selection overlay; editor overlays are now drawn in front.
+- The settings header's switch overlapped the close button. The search bar is hidden on settings pages.
+- Notifications overlapped Chat Search's field while chat was open.
+- Poppins has no ↔ ↕ ▾ glyphs; the editor draws its chevrons and labels avoid those characters.
+- Crosshair editor buttons ran off the window at small sizes.
+
+Known limitations:
+- The blur is Minecraft's own menu blur and follows the game's Menu Background Blurriness option. The world is
+  always dimmed behind the window, with or without blur.
+- Text at fractional pixel scales (e.g. ClickGUI scale 1.15) uses the nearest oversampled font and is very slightly
+  soft.
+- Minecraft's own screens (options, world list, server list, inventory) keep the vanilla look apart from the
+  Aurora backdrop.

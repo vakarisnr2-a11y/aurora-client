@@ -17,6 +17,11 @@ public final class ChatSearch extends Module {
     }
 
     @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
+    @Override
     protected void onDisable() {
         setQuery("");
     }

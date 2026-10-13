@@ -68,6 +68,11 @@ public final class HitSounds extends Module {
     }
 
     @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
+    @Override
     protected void onEnable() {
         lastAttack = CombatTracker.INSTANCE.getLastAttackMs();
         lastHit = CombatTracker.INSTANCE.getLastHitMs();

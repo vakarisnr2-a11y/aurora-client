@@ -1,12 +1,9 @@
-package dev.aurora.client.gui.component;
+package dev.aurora.client.gui.clickgui;
 
 import net.minecraft.client.gui.DrawContext;
 
-/**
- * Base for ClickGUI widgets. Coordinates and mouse positions are in GUI-local units (already
- * divided by the ClickGUI scale), so components never deal with scaling themselves.
- */
-public abstract class Component {
+/** Base of ClickGUI widgets. Coordinates are window-local GUI units (the screen undoes its scale for the mouse). */
+public abstract class Element {
     protected float x;
     protected float y;
     protected float width;

@@ -34,7 +34,7 @@ public final class TargetHud extends HudModule {
     private Object eggFor;
 
     public TargetHud() {
-        super("Target HUD", "Shows information about the entity you are fighting.", Category.COMBAT, 0.5, 0.6, false);
+        super("Target HUD", "Shows information about the entity you are fighting.", Category.COMBAT, 0.75, 0.55, false);
     }
 
     private LivingEntity currentTarget() {
@@ -109,7 +109,7 @@ public final class TargetHud extends HudModule {
         int textX = pad + head + 6;
         int barW = w - textX - pad;
         String name = t.getName().getString();
-        if (tr.getWidth(name) > barW) name = tr.trimToWidth(name, barW - 4) + "…";
+        name = HudStyle.trim(name, barW);
         HudStyle.text(ctx, name, textX, 7, HudStyle.text());
 
         float max = Math.max(1, t.getMaxHealth());

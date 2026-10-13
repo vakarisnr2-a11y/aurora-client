@@ -27,6 +27,11 @@ public final class LowHealthWarning extends Module {
         on(Render2DEvent.class, this::render);
     }
 
+    @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
     private void render(Render2DEvent e) {
         MinecraftClient mc = MinecraftClient.getInstance();
         ClientPlayerEntity p = mc.player;

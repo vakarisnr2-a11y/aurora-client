@@ -11,6 +11,11 @@ public final class CrosshairEditor extends Module {
     }
 
     @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
+    @Override
     protected void onEnable() {
         net.minecraft.client.MinecraftClient mc = mc();
         if (mc != null) mc.send(() -> mc.setScreen(new CrosshairEditorScreen(mc.currentScreen))); // next frame, see ClickGui

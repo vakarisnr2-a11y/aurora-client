@@ -7,6 +7,8 @@ import dev.aurora.client.hud.HudModule;
 import dev.aurora.client.hud.HudRenderer;
 import dev.aurora.client.hud.HudSnapper;
 import dev.aurora.client.module.modules.misc.HudEditor;
+import dev.aurora.client.gui.ui.Ui;
+import dev.aurora.client.gui.ui.UiFont;
 import dev.aurora.client.notification.NotificationManager;
 import dev.aurora.client.render.Render2D;
 import dev.aurora.client.util.ColorUtil;
@@ -28,9 +30,9 @@ import java.util.List;
 public final class HudEditorScreen extends Screen {
     private static final float SNAP = 5;
     private static final float BAR_Y = 6;
-    private static final float BTN_H = 14;
-    private static final float MENU_W = 140;
-    private static final float ROW_H = 12;
+    private static final float BTN_H = 18;
+    private static final float MENU_W = 150;
+    private static final float ROW_H = 15;
     private static final int B_GRID = 0, B_SNAP = 1, B_ELEMENTS = 2, B_LAYOUTS = 3, B_RESET = 4, B_DONE = 5;
 
     private enum Menu {
@@ -118,8 +120,9 @@ public final class HudEditorScreen extends Screen {
             HudRenderer.renderElement(ctx, h, delta, width, height, true);
             float x = h.getX(width), y = h.getY(height);
             float w = h.getScaledWidth(), hh = h.getScaledHeight();
-            int color = h == hovered ? Theme.accent() : h == selected ? ColorUtil.withAlpha(Theme.accent(), 140) : 0x50FFFFFF;
-            Render2D.roundedOutline(ctx, x - 2, y - 2, w + 4, hh + 4, 3, 1, color);
+            int color = h == hovered ? Ui.accent(0xFF) : h == selected ? Ui.accent(0x90) : 0x40FFFFFF;
+            if (h == hovered) Render2D.roundedRect(ctx, x - 2, y - 2, w + 4, hh + 4, 4, Ui.accent(0x18));
+            Render2D.roundedOutline(ctx, x - 2, y - 2, w + 4, hh + 4, 4, 1, color);
         }
         // Editor overlays sit in front of the elements (HUD text is drawn slightly forward in depth).
         ctx.draw();
@@ -136,22 +139,23 @@ public final class HudEditorScreen extends Screen {
         renderToolbar(ctx, mouseX, mouseY);
         renderMenu(ctx, mouseX, mouseY);
 
-        String help = "Drag: move · Shift: free · Scroll/+/-: size · Arrows: nudge · R: reset · Right-click: hide · G: grid · Esc: done";
-        if (textRenderer.getWidth(help) + 16 > width) help = "Drag · Scroll: size · R: reset · Right-click: hide";
-        int hw = textRenderer.getWidth(help) + 16;
-        Render2D.roundedRect(ctx, width / 2f - hw / 2f, height - 22, hw, 16, 8, Theme.panel());
-        ctx.drawText(textRenderer, help, width / 2 - hw / 2 + 8, height - 18, Theme.SUBTEXT, false);
+        String help = "Drag: move  ·  Shift: free  ·  Scroll / + -: size  ·  Arrows: nudge  ·  R: reset  ·  Right-click: hide  ·  G: grid";
+        if (UiFont.width(help) + 24 > width) help = "Drag  ·  Scroll: size  ·  R: reset  ·  Right-click: hide";
+        int hw = UiFont.width(help) + 24;
+        Render2D.roundedRect(ctx, width / 2f - hw / 2f, height - 24, hw, 18, 9, 0xE00B0E16);
+        Render2D.roundedOutline(ctx, width / 2f - hw / 2f, height - 24, hw, 18, 9, 1, Ui.BORDER);
+        UiFont.draw(ctx, help, width / 2f - hw / 2f + 12, height - 19, Ui.SUBTEXT);
         ctx.getMatrices().pop();
     }
 
     private void drawLabel(DrawContext ctx, HudModule h) {
         float x = h.getX(width), y = h.getY(height);
-        String label = h.getName() + " · " + Math.round(h.getScale() * 100) + "% · " + h.getAnchor();
-        int lw = textRenderer.getWidth(label);
-        float lx = Math.max(0, Math.min(width - lw - 8, x - 2));
-        float ly = y - 14 < BAR_Y + BTN_H + 4 ? y + h.getScaledHeight() + 4 : y - 14;
-        Render2D.roundedRect(ctx, lx, ly, lw + 8, 11, 3, ColorUtil.withAlpha(Theme.accent(), 210));
-        ctx.drawText(textRenderer, label, (int) lx + 4, (int) ly + 2, 0xFF0E0F14, false);
+        String label = h.getName() + "  ·  " + Math.round(h.getScale() * 100) + "%  ·  " + h.getAnchor();
+        int lw = UiFont.width(label);
+        float lx = Math.max(0, Math.min(width - lw - 12, x - 2));
+        float ly = y - 17 < BAR_Y + BTN_H + 4 ? y + h.getScaledHeight() + 5 : y - 17;
+        Render2D.roundedRect(ctx, lx, ly, lw + 12, 14, 7, Ui.accent(0xE8));
+        UiFont.draw(ctx, label, lx + 6, ly + 3, 0xFFFFFFFF);
     }
 
     /** Dashed lines from the element to the edges (or centre lines) it is anchored to. */
@@ -184,13 +188,13 @@ public final class HudEditorScreen extends Screen {
     private void layoutToolbar() {
         buttonLabels[B_GRID] = "Grid: " + (options.snapGrid().get() ? "On" : "Off");
         buttonLabels[B_SNAP] = "Snap: " + (options.snapElements().get() ? "On" : "Off");
-        buttonLabels[B_ELEMENTS] = "Elements " + (menu == Menu.ELEMENTS ? "▴" : "▾");
-        buttonLabels[B_LAYOUTS] = "Layouts " + (menu == Menu.LAYOUTS ? "▴" : "▾");
+        buttonLabels[B_ELEMENTS] = "Elements";
+        buttonLabels[B_LAYOUTS] = "Layouts";
         buttonLabels[B_RESET] = System.currentTimeMillis() < resetArmedUntil ? "Sure?" : "Reset All";
         buttonLabels[B_DONE] = "Done";
         float total = 0;
         for (int i = 0; i < buttonLabels.length; i++) {
-            buttonW[i] = textRenderer.getWidth(buttonLabels[i]) + 12;
+            buttonW[i] = UiFont.width(buttonLabels[i]) + 16 + (i == B_ELEMENTS || i == B_LAYOUTS ? 10 : 0);
             total += buttonW[i] + 4;
         }
         float x = width / 2f - (total - 4) / 2f;
@@ -220,11 +224,20 @@ public final class HudEditorScreen extends Screen {
             boolean active = (i == B_GRID && options.snapGrid().get()) || (i == B_SNAP && options.snapElements().get())
                 || (i == B_ELEMENTS && menu == Menu.ELEMENTS) || (i == B_LAYOUTS && menu == Menu.LAYOUTS);
             boolean armed = i == B_RESET && System.currentTimeMillis() < resetArmedUntil;
-            int bg = armed ? 0xFF7F1D1D : i == hovered ? ColorUtil.withAlpha(Theme.accent(), 200)
-                : active ? ColorUtil.withAlpha(Theme.accent(), 110) : Theme.panel();
-            Render2D.shadow(ctx, buttonX[i], BAR_Y, buttonW[i], BTN_H, 4, 3, 0x60000000);
-            Render2D.roundedRect(ctx, buttonX[i], BAR_Y, buttonW[i], BTN_H, 4, bg);
-            ctx.drawText(textRenderer, buttonLabels[i], (int) (buttonX[i] + 6), (int) BAR_Y + 3, Theme.TEXT, false);
+            int bg = armed ? 0xFF7F1D1D : active ? Ui.accent(i == hovered ? 0xFF : 0xC8)
+                : i == hovered ? 0xF01B2030 : 0xE8101420;
+            Render2D.shadow(ctx, buttonX[i], BAR_Y, buttonW[i], BTN_H, BTN_H / 2f, 4, 0x70000000);
+            Render2D.roundedRect(ctx, buttonX[i], BAR_Y, buttonW[i], BTN_H, BTN_H / 2f, bg);
+            if (!active && !armed) Render2D.roundedOutline(ctx, buttonX[i], BAR_Y, buttonW[i], BTN_H, BTN_H / 2f, 1, Ui.BORDER);
+            UiFont.draw(ctx, buttonLabels[i], buttonX[i] + 8, BAR_Y + (BTN_H - 8) / 2f, active || armed ? 0xFFFFFFFF : Ui.TEXT);
+            if (i == B_ELEMENTS || i == B_LAYOUTS) {
+                float cx = buttonX[i] + buttonW[i] - 14;
+                boolean open = (i == B_ELEMENTS && menu == Menu.ELEMENTS) || (i == B_LAYOUTS && menu == Menu.LAYOUTS);
+                float a = open ? 3 : 0;
+                int c = active ? 0xFFFFFFFF : Ui.SUBTEXT;
+                Render2D.line(ctx, cx, BAR_Y + 8 + a, cx + 3, BAR_Y + 11 - a, 1.3f, c);
+                Render2D.line(ctx, cx + 3, BAR_Y + 11 - a, cx + 6, BAR_Y + 8 + a, 1.3f, c);
+            }
         }
     }
 
@@ -235,7 +248,7 @@ public final class HudEditorScreen extends Screen {
     }
 
     private float menuY() {
-        return BAR_Y + BTN_H + 3;
+        return BAR_Y + BTN_H + 5;
     }
 
     private int menuRows() {
@@ -263,32 +276,32 @@ public final class HudEditorScreen extends Screen {
         float x = Math.min(menuX(), width - MENU_W - 4);
         float y = menuY();
         int rows = menuRows();
-        Render2D.shadow(ctx, x, y, MENU_W, rows * ROW_H + 4, 4, 4, 0x80000000);
-        Render2D.roundedRect(ctx, x, y, MENU_W, rows * ROW_H + 4, 4, Theme.panel());
+        Ui.window(ctx, x, y, MENU_W, rows * ROW_H + 4, Ui.R_MEDIUM);
         int hovered = menuRowAt(mx, my);
         for (int i = 0; i < rows; i++) {
             float ry = y + 2 + i * ROW_H;
-            if (i == hovered) Render2D.rect(ctx, x + 2, ry, MENU_W - 4, ROW_H, 0x22FFFFFF);
+            if (i == hovered) Render2D.roundedRect(ctx, x + 3, ry, MENU_W - 6, ROW_H, Ui.R_SMALL, 0x1CFFFFFF);
             String text;
-            int color = Theme.SUBTEXT;
+            int color = Ui.SUBTEXT;
             if (menu == Menu.ELEMENTS) {
                 HudModule h = elements().get(i);
-                text = (h.isEnabled() ? "■ " : "□ ") + h.getName();
-                color = h.isEnabled() ? Theme.TEXT : Theme.MUTED;
+                text = h.getName();
+                color = h.isEnabled() ? Ui.TEXT : Ui.MUTED;
+                Ui.toggle(ctx, x + MENU_W - 6 - Ui.SWITCH_W * 0.75f, ry + 2, h.isEnabled() ? 1 : 0, 0.75f);
             } else if (i == 0) {
                 boolean caret = (System.currentTimeMillis() / 500) % 2 == 0;
-                text = naming ? "Name: " + nameInput.get() + (caret ? "_" : "") : "+ Save current layout";
-                color = Theme.accent();
+                text = naming ? "Name: " + nameInput.get() + (caret ? "|" : "") : "+  Save current layout";
+                color = Ui.accentLight();
             } else if (i == rows - 1) {
                 text = "Open layouts folder";
-                color = Theme.MUTED;
+                color = Ui.MUTED;
             } else {
                 String name = layoutNames.get(i - 1);
                 boolean armed = name.equals(armedDelete) && System.currentTimeMillis() < armedUntil;
                 text = armed ? "Right-click again to delete" : name;
-                color = armed ? 0xFFF87171 : Theme.TEXT;
+                color = armed ? Ui.DANGER : Ui.TEXT;
             }
-            ctx.drawText(textRenderer, textRenderer.trimToWidth(text, (int) MENU_W - 10), (int) x + 6, (int) ry + 2, color, false);
+            UiFont.draw(ctx, UiFont.trim(text, (int) MENU_W - (menu == Menu.ELEMENTS ? 34 : 14), UiFont.Size.BODY, false), x + 8, ry + 3.5f, color);
         }
     }
 

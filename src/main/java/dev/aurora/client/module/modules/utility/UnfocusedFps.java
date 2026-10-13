@@ -19,6 +19,11 @@ public final class UnfocusedFps extends Module {
     }
 
     @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
+    @Override
     public boolean notifiesOnToggle() {
         return false;
     }

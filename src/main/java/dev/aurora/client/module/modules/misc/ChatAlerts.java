@@ -67,6 +67,11 @@ public final class ChatAlerts extends Module {
         on(ChatReceiveEvent.class, this::onChat);
     }
 
+    @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
     private void onChat(ChatReceiveEvent e) {
         if (e.overlay || e.message == null) return;
         List<String> list = keywordList();

@@ -2,12 +2,17 @@ package dev.aurora.client.hud;
 
 import dev.aurora.client.AuroraClient;
 import dev.aurora.client.gui.Theme;
+import dev.aurora.client.gui.ui.UiFont;
 import dev.aurora.client.module.modules.visuals.HudTheme;
 import dev.aurora.client.render.Render2D;
 import dev.aurora.client.util.ColorUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.text.Text;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * The shared look of every HUD element, driven by the {@link HudTheme} module: background, corner radius, shadow,
@@ -19,6 +24,8 @@ import net.minecraft.client.gui.DrawContext;
 public final class HudStyle {
     /** Default padding, kept for code that lays out before a theme exists. */
     public static final int PADDING = 4;
+    private static final int WIDTH_CACHE_SIZE = 512;
+    private static final Map<String, Integer> WIDTHS = new HashMap<>();
     private static final int DEFAULT_TEXT = 0xFFECEEF4;
     private static final int MUTED = 0xFF6B7186;
 
@@ -46,7 +53,7 @@ public final class HudStyle {
 
     public static float radius() {
         HudTheme t = theme();
-        return t == null ? 4 : t.radius();
+        return t == null ? 5 : t.radius();
     }
 
     public static int accent() {
@@ -79,7 +86,7 @@ public final class HudStyle {
 
     public static int background() {
         HudTheme t = theme();
-        return t == null ? 0xA00E1016 : t.background();
+        return t == null ? 0xA80B0E17 : t.background();
     }
 
     /** Background for inner cells (keys, icon boxes): the theme background, never fully invisible. */
@@ -128,10 +135,10 @@ public final class HudStyle {
                 Render2D.roundedRect(ctx, x, y, w, h, r, bg);
             }
         }
-        if (t != null && t.outline()) {
-            Render2D.roundedOutline(ctx, x, y, w, h, r, 1, t.outlineAccent() ? accent : t.outlineColor());
+        if (t == null || t.outline()) {
+            Render2D.roundedOutline(ctx, x, y, w, h, r, 1, t == null ? 0x1CFFFFFF : t.outlineAccent() ? accent : t.outlineColor());
         }
-        HudTheme.AccentBar bar = t == null ? HudTheme.AccentBar.BOTTOM : t.accentBar();
+        HudTheme.AccentBar bar = t == null ? HudTheme.AccentBar.NONE : t.accentBar();
         switch (bar) {
             case BOTTOM -> Render2D.rect(ctx, x + r * 0.5f + 1.5f, y + h - 1, w - r - 3, 1, ColorUtil.fade(accent, 0.85f));
             case TOP -> Render2D.rect(ctx, x + r * 0.5f + 1.5f, y, w - r - 3, 1, ColorUtil.fade(accent, 0.85f));
@@ -165,20 +172,59 @@ public final class HudStyle {
     }
 
     public static void text(DrawContext ctx, String s, float x, float y, int color, boolean shadow) {
-        if (ColorUtil.alpha(color) < 4) return; // the font treats alpha below 4 as opaque
-        ctx.drawText(font(), s, Math.round(x), Math.round(y), color, shadow);
+        if (ColorUtil.alpha(color) < 4 || s.isEmpty()) return; // the font treats alpha below 4 as opaque
+        if (auroraFont()) {
+            ctx.drawText(font(), UiFont.text(s, UiFont.styleFor(ctx, UiFont.Size.BODY, false)), Math.round(x), Math.round(y), color, shadow);
+        } else {
+            ctx.drawText(font(), s, Math.round(x), Math.round(y), color, shadow);
+        }
     }
 
+    /** Styled text (scoreboard lines, names); the HUD font is applied where the text has no font of its own. */
+    public static void text(DrawContext ctx, Text t, float x, float y, int color, boolean shadow) {
+        if (ColorUtil.alpha(color) < 4) return;
+        ctx.drawText(font(), auroraFont() ? t.copy().fillStyle(UiFont.styleFor(ctx, UiFont.Size.BODY, false)) : t,
+            Math.round(x), Math.round(y), color, shadow);
+    }
+
+    /**
+     * Width of HUD text in the HUD font. Use this (never TextRenderer#getWidth) for HUD layout. Aurora-font widths are
+     * cached because HUD elements measure the same few strings every frame.
+     */
     public static int width(String s) {
-        return font().getWidth(s);
+        if (s.isEmpty()) return 0;
+        if (!auroraFont()) return font().getWidth(s);
+        Integer cached = WIDTHS.get(s);
+        if (cached != null) return cached;
+        if (WIDTHS.size() >= WIDTH_CACHE_SIZE) WIDTHS.clear(); // changing values (timers, coordinates) churn through
+        int w = font().getWidth(UiFont.text(s, UiFont.measuringStyle(UiFont.Size.BODY, false)));
+        WIDTHS.put(s, w);
+        return w;
+    }
+
+    /** {@code s} cut to {@code maxWidth} HUD-font pixels with an ellipsis. */
+    public static String trim(String s, int maxWidth) {
+        if (width(s) <= maxWidth) return s;
+        int end = s.length();
+        while (end > 0 && width(s.substring(0, end) + "…") > maxWidth) end--;
+        return s.substring(0, end) + "…";
+    }
+
+    public static int width(Text t) {
+        return auroraFont() ? font().getWidth(t.copy().fillStyle(UiFont.measuringStyle(UiFont.Size.BODY, false))) : font().getWidth(t);
+    }
+
+    /** Whether HUD text uses Aurora's interface font (the default) instead of Minecraft's. */
+    public static boolean auroraFont() {
+        HudTheme t = theme();
+        return t != null && t.font() == HudTheme.Font.AURORA;
     }
 
     /** One-line "label value" pill without animations. Returns the width. */
     public static int drawLabelValue(DrawContext ctx, String label, String value, int valueColor, boolean background) {
-        TextRenderer tr = font();
         int pad = padding();
-        int labelW = label.isEmpty() ? 0 : tr.getWidth(label) + 4;
-        int w = labelW + tr.getWidth(value) + pad * 2;
+        int labelW = label.isEmpty() ? 0 : width(label) + 4;
+        int w = labelW + width(value) + pad * 2;
         if (background) background(ctx, 0, 0, w, lineHeight());
         if (!label.isEmpty()) text(ctx, label, pad, pad, label());
         text(ctx, value, pad + labelW, pad, valueColor);

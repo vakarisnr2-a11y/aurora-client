@@ -53,6 +53,11 @@ public final class HotbarStyle extends Module {
     }
 
     @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
+    @Override
     protected void onEnable() {
         slideStarted = false;
     }

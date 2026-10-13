@@ -45,7 +45,7 @@ public final class BowCharge extends HudModule {
         int height = PAD + tr.fontHeight + 2 + BAR_H + PAD;
         if (background.get()) HudStyle.background(ctx, 0, 0, width, height);
         int color = ready ? READY_COLOR : HudStyle.accent();
-        HudStyle.text(ctx, label, (width - tr.getWidth(label)) / 2f, PAD, ready ? READY_COLOR : HudStyle.text());
+        HudStyle.text(ctx, label, (width - HudStyle.width(label)) / 2f, PAD, ready ? READY_COLOR : HudStyle.text());
         float barY = PAD + tr.fontHeight + 2;
         HudStyle.bar(ctx, PAD, barY, BAR_W, BAR_H, progress, color);
         setSize(width, height);

@@ -1,11 +1,11 @@
 package dev.aurora.client.module.modules.visuals;
 
+import dev.aurora.client.hud.HudStyle;
 import dev.aurora.client.module.Category;
 import dev.aurora.client.module.Module;
 import dev.aurora.client.render.Render2D;
 import dev.aurora.client.setting.BooleanSetting;
 import dev.aurora.client.setting.ColorSetting;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.entity.player.PlayerEntity;
 
@@ -22,6 +22,11 @@ public final class SaturationOverlay extends Module {
 
     public SaturationOverlay() {
         super("Saturation Overlay", "Shows food saturation on the hunger bar.", Category.VISUALS);
+    }
+
+    @Override
+    protected boolean shownInListByDefault() {
+        return false;
     }
 
     /** Called after vanilla drew the food icons; icon i sits at (right - i * 8 - 9, top). */
@@ -45,8 +50,7 @@ public final class SaturationOverlay extends Module {
         }
         if (value.get() && saturation > 0) {
             String text = String.format(Locale.ROOT, "%.1f", saturation);
-            MinecraftClient mc = MinecraftClient.getInstance();
-            ctx.drawText(mc.textRenderer, text, right - 81 - mc.textRenderer.getWidth(text) - 3, top + 1, c | 0xFF000000, true);
+            HudStyle.text(ctx, text, right - 81 - HudStyle.width(text) - 3, top + 1, c | 0xFF000000, true);
         }
     }
 

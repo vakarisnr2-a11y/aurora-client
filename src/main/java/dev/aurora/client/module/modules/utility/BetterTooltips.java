@@ -24,6 +24,11 @@ public final class BetterTooltips extends Module {
         super("Better Tooltips", "Exact durability numbers and enchantment levels as numbers in item tooltips.", Category.UTILITY);
     }
 
+    @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
     public boolean numberedLevels() {
         return isEnabled() && numbers.get();
     }

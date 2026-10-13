@@ -40,6 +40,7 @@ public final class ModuleList extends HudModule {
     private final BooleanSetting sidebar = add(new BooleanSetting("Sidebar", "Accent bar along the screen edge", true));
     private final BooleanSetting suffix = add(new BooleanSetting("Suffix", "Show module info such as modes", true));
     private final BooleanSetting lowercase = add(new BooleanSetting("Lowercase", "Display names in lowercase", false));
+    private final BooleanSetting hideHud = add(new BooleanSetting("Hide HUD Elements", "Leave out modules that already show on screen (FPS, Ping...)", true));
 
     private final Map<Module, Animation> animations = new IdentityHashMap<>();
     private final List<Module> visible = new ArrayList<>();
@@ -61,7 +62,7 @@ public final class ModuleList extends HudModule {
         visible.clear();
         for (Module m : AuroraClient.modules().getAll()) {
             Animation a = animations.computeIfAbsent(m, k -> new Animation(0, 12));
-            double target = m.isEnabled() && m.isDrawn() && m != this ? 1 : 0;
+            double target = m.isEnabled() && m.isDrawn() && m != this && !(hideHud.get() && m instanceof HudModule) ? 1 : 0;
             a.setTarget(target);
             a.setSpeed(12 * HudStyle.animationSpeed());
             if (!HudStyle.animations()) a.snap(target);
@@ -73,20 +74,20 @@ public final class ModuleList extends HudModule {
         if (visible.isEmpty()) {
             if (editor) {
                 HudStyle.text(ctx, "Module List", 0, 0, HudStyle.accent());
-                setSize(tr.getWidth("Module List"), tr.fontHeight);
+                setSize(HudStyle.width("Module List"), tr.fontHeight);
             } else {
                 setSize(60, 10);
             }
             return;
         }
         if (sorting.get() == Sorting.LENGTH) {
-            visible.sort(Comparator.comparingInt((Module m) -> -tr.getWidth(labels.get(m))));
+            visible.sort(Comparator.comparingInt((Module m) -> -HudStyle.width(labels.get(m))));
         } else {
             visible.sort(Comparator.comparing(Module::getName, String.CASE_INSENSITIVE_ORDER));
         }
 
         int maxWidth = 0;
-        for (Module m : visible) maxWidth = Math.max(maxWidth, tr.getWidth(labels.get(m)));
+        for (Module m : visible) maxWidth = Math.max(maxWidth, HudStyle.width(labels.get(m)));
         boolean right = isRightSide();
         int lineHeight = tr.fontHeight + 3;
         int bg = HudStyle.background();
@@ -97,7 +98,7 @@ public final class ModuleList extends HudModule {
             Module m = visible.get(i);
             float a = animations.get(m).getFloat();
             String text = labels.get(m);
-            int w = tr.getWidth(text);
+            int w = HudStyle.width(text);
             int color = color(i, visible.size());
             float slide = (1 - a) * (w + 8);
             float x = right ? fullWidth - w - 4 + slide : 2 - slide;
@@ -111,7 +112,7 @@ public final class ModuleList extends HudModule {
             }
             ctx.getMatrices().push();
             ctx.getMatrices().translate(x, y + 2, 0);
-            ctx.drawText(tr, text, 0, 0, ColorUtil.fade(color, Math.max(0.05f, a)), shadow);
+            HudStyle.text(ctx, text, 0, 0, ColorUtil.fade(color, Math.max(0.05f, a)), shadow);
             ctx.getMatrices().pop();
             y += lineHeight * a;
         }

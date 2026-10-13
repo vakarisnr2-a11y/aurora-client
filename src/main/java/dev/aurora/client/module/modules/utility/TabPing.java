@@ -21,6 +21,11 @@ public final class TabPing extends Module {
         super("Tab Ping", "Shows ping as a number in milliseconds in the tab list.", Category.UTILITY);
     }
 
+    @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
     /** Extra column width needed for the widest ping text among the listed players (0 if it fits the icon). */
     public int extraColumnWidth() {
         MinecraftClient mc = MinecraftClient.getInstance();

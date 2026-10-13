@@ -7,12 +7,12 @@ import dev.aurora.client.util.ColorUtil;
 /** Central color palette derived from the ClickGUI module's theme settings. */
 public final class Theme {
     public enum Preset {
-        MIDNIGHT("Midnight", 0xFF0E1016, 0xFF151821, 0xFF1C2030, 0xFF8B5CF6),
-        OCEAN("Ocean", 0xFF0A121C, 0xFF0F1A28, 0xFF15243A, 0xFF38BDF8),
-        SAKURA("Sakura", 0xFF170F14, 0xFF21151C, 0xFF2D1C27, 0xFFF472B6),
-        EMERALD("Emerald", 0xFF0B1411, 0xFF101C18, 0xFF162822, 0xFF34D399),
-        CRIMSON("Crimson", 0xFF150D0E, 0xFF1F1214, 0xFF2B181B, 0xFFF43F5E),
-        GRAPHITE("Graphite", 0xFF101010, 0xFF181818, 0xFF222222, 0xFFE5E7EB);
+        MIDNIGHT("Midnight", 0xFF0A0C13, 0xFF0D1018, 0xFF141824, 0xFF8B5CF6),
+        OCEAN("Ocean", 0xFF080D15, 0xFF0B121C, 0xFF111B29, 0xFF38BDF8),
+        SAKURA("Sakura", 0xFF110B10, 0xFF160F15, 0xFF21161F, 0xFFF472B6),
+        EMERALD("Emerald", 0xFF080F0D, 0xFF0B1411, 0xFF12201B, 0xFF34D399),
+        CRIMSON("Crimson", 0xFF100A0B, 0xFF150D0F, 0xFF201517, 0xFFF43F5E),
+        GRAPHITE("Graphite", 0xFF0B0B0D, 0xFF101012, 0xFF19191C, 0xFFE5E7EB);
 
         private final String label;
         public final int background;
@@ -34,9 +34,9 @@ public final class Theme {
         }
     }
 
-    public static final int TEXT = 0xFFECEEF4;
-    public static final int SUBTEXT = 0xFF9BA1B5;
-    public static final int MUTED = 0xFF6B7186;
+    public static final int TEXT = 0xFFF1F3F9;
+    public static final int SUBTEXT = 0xFFA3AAC0;
+    public static final int MUTED = 0xFF6B7287;
 
     private Theme() {
     }
@@ -84,6 +84,19 @@ public final class Theme {
 
     public static int hudBackground() {
         return ColorUtil.withAlpha(preset().background, 150);
+    }
+
+    /** The preset's window, panel and card colors. */
+    public static int windowColor() {
+        return ColorUtil.fade(preset().panel, opacity());
+    }
+
+    public static int sidebarColor() {
+        return ColorUtil.fade(preset().background, opacity());
+    }
+
+    public static int cardColor() {
+        return ColorUtil.fade(preset().surface, opacity());
     }
 
     public static float radius() {

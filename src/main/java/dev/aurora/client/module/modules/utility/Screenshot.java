@@ -58,6 +58,11 @@ public final class Screenshot extends Module {
         });
     }
 
+    @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
     private void request() {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (pendingTicks > 0) return;

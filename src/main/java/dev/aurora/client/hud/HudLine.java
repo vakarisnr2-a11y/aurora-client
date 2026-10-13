@@ -2,7 +2,6 @@ package dev.aurora.client.hud;
 
 import dev.aurora.client.util.Animation;
 import dev.aurora.client.util.ColorUtil;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 
 /**
@@ -32,11 +31,10 @@ public final class HudLine {
 
     /** Draws the line at (0,0) and returns its current width. */
     public int draw(DrawContext ctx, String label, String value, int valueColor, boolean background) {
-        TextRenderer tr = HudStyle.font();
         int pad = HudStyle.padding();
-        int labelW = label.isEmpty() ? 0 : tr.getWidth(label) + 4;
+        int labelW = label.isEmpty() ? 0 : HudStyle.width(label) + 4;
         int h = HudStyle.lineHeight();
-        box.update(labelW + tr.getWidth(value) + pad * 2, h);
+        box.update(labelW + HudStyle.width(value) + pad * 2, h);
         float w = box.width();
         if (background) HudStyle.background(ctx, 0, 0, w, h);
         if (!label.isEmpty()) HudStyle.text(ctx, label, pad, pad, HudStyle.label());

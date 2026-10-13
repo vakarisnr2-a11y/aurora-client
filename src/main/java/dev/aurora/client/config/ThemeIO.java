@@ -18,7 +18,7 @@ import java.util.Set;
 
 /**
  * Exports and imports a look: the ClickGUI theme values (preset, accent, opacity, corner radius, blur, animation speed)
- * and every HUD Theme setting plus whether HUD Theme is on. Layout values (panel positions, GUI scale) are not part
+ * and every HUD Theme setting plus whether HUD Theme is on. Layout values (GUI scale) are not part
  * of a theme. Imported values go through each setting's validation, like profiles.
  */
 public final class ThemeIO {

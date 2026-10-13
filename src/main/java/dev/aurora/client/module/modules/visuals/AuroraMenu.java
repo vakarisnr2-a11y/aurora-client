@@ -3,6 +3,7 @@ package dev.aurora.client.module.modules.visuals;
 import dev.aurora.client.module.Category;
 import dev.aurora.client.module.Module;
 import dev.aurora.client.setting.BooleanSetting;
+import dev.aurora.client.setting.KeybindSetting;
 import net.minecraft.client.gui.screen.DownloadingTerrainScreen;
 import net.minecraft.client.gui.screen.MessageScreen;
 import net.minecraft.client.gui.screen.ProgressScreen;
@@ -11,8 +12,8 @@ import net.minecraft.client.gui.screen.multiplayer.ConnectScreen;
 import net.minecraft.client.gui.screen.world.LevelLoadingScreen;
 
 /**
- * Aurora's own main menu, menu backgrounds and loading screens. Each part can be switched off. "Vanilla menu" on the
- * Aurora main menu opens the normal title screen once.
+ * Aurora's own main menu, menu backgrounds and loading screens (on by default). Each part can be switched off.
+ * "Vanilla menu" on the Aurora main menu opens the normal title screen once.
  */
 public final class AuroraMenu extends Module {
     private final BooleanSetting mainMenu = add(new BooleanSetting("Main Menu", "Replace the title screen with the Aurora menu", true));
@@ -23,7 +24,13 @@ public final class AuroraMenu extends Module {
     private static boolean vanillaOnce;
 
     public AuroraMenu() {
-        super("Aurora Menu", "Themed Aurora main menu, menu backgrounds and loading screens with the Aurora logo.", Category.VISUALS);
+        super("Aurora Menu", "Themed Aurora main menu, menu backgrounds and loading screens with the Aurora logo.", Category.VISUALS,
+            KeybindSetting.NONE, true);
+    }
+
+    @Override
+    protected boolean shownInListByDefault() {
+        return false;
     }
 
     @Override

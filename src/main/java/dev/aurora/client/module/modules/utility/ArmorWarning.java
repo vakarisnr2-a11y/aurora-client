@@ -32,6 +32,11 @@ public final class ArmorWarning extends Module {
     }
 
     @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
+    @Override
     protected void onEnable() {
         for (int i = 0; i < 4; i++) {
             warned[i] = false;

@@ -68,6 +68,11 @@ public final class BetterChat extends Module {
     }
 
     @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
+    @Override
     protected void onDisable() {
         lastPlain = null;
         lastShown = null;

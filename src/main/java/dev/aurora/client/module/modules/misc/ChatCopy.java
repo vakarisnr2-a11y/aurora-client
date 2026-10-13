@@ -41,6 +41,11 @@ public final class ChatCopy extends Module {
         super("Chat Copy", "Click a chat message (right-click by default) to copy it to the clipboard.", Category.MISC);
     }
 
+    @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
     public boolean matches(int mouseButton) {
         return switch (button.get()) {
             case RIGHT_CLICK -> mouseButton == 1;

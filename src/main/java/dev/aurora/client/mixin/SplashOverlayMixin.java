@@ -53,7 +53,10 @@ public abstract class SplashOverlayMixin {
             context.drawTexture(texture, x, y, width, height, u, v, regionWidth, regionHeight, textureWidth, textureHeight);
             return;
         }
-        if (u < 0) AuroraLogo.icon(context, x + width - height / 2, y, height); // x + width is the logo's centre
+        if (u < 0) { // x + width is the logo's centre; the emblem is square, a bit taller than Mojang's wordmark
+            int size = Math.round(height * 1.5f);
+            AuroraLogo.emblem(context, x + width - size / 2, y + height / 2 - size / 2, size);
+        }
     }
 
     @Inject(method = "renderProgressBar", at = @At("HEAD"), cancellable = true)

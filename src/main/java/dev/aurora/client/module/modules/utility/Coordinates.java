@@ -29,7 +29,7 @@ public final class Coordinates extends HudModule {
     private final SmoothBox box = new SmoothBox();
 
     public Coordinates() {
-        super("Coordinates", "Shows your position, facing and converted dimension coordinates.", Category.UTILITY, 0.0, 0.92, true);
+        super("Coordinates", "Shows your position, facing and converted dimension coordinates.", Category.UTILITY, 0.0, 0.24, true);
     }
 
     @Override
@@ -69,9 +69,9 @@ public final class Coordinates extends HudModule {
         }
         int pad = HudStyle.padding();
         int labelW = 0;
-        for (int i = 0; i < n; i++) labelW = Math.max(labelW, tr.getWidth(labels[i]));
+        for (int i = 0; i < n; i++) labelW = Math.max(labelW, HudStyle.width(labels[i]));
         int valueW = 0;
-        for (int i = 0; i < n; i++) valueW = Math.max(valueW, tr.getWidth(values[i]));
+        for (int i = 0; i < n; i++) valueW = Math.max(valueW, HudStyle.width(values[i]));
         int lh = tr.fontHeight + 2;
         box.update(labelW + 4 + valueW + pad * 2, n * lh + pad * 2 - 2);
         if (background.get()) HudStyle.background(ctx, 0, 0, box.width(), box.height());

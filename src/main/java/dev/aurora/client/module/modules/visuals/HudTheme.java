@@ -5,21 +5,30 @@ import dev.aurora.client.module.Module;
 import dev.aurora.client.setting.BooleanSetting;
 import dev.aurora.client.setting.ColorSetting;
 import dev.aurora.client.setting.EnumSetting;
+import dev.aurora.client.setting.KeybindSetting;
 import dev.aurora.client.setting.NumberSetting;
 import dev.aurora.client.setting.Setting;
 
 /**
  * One shared look for every HUD element (see {@link dev.aurora.client.hud.HudStyle}).
  *
- * <p>While the module is off, HUD elements use the default Dark look (the default value of every setting). Turning it
- * on applies the settings below. Picking a preset writes all values at once; they can be tweaked afterwards.</p>
+ * <p>On by default. While the module is off, HUD elements use the default Aurora look (the default value of every
+ * setting) instead of your changes. Picking a preset writes all values at once; they can be tweaked afterwards.</p>
  */
 public final class HudTheme extends Module {
     public enum AccentBar {
         NONE, BOTTOM, LEFT, TOP
     }
 
+    public enum Font {
+        /** Aurora's interface font, the same as the menus and the ClickGUI. */
+        AURORA,
+        /** Minecraft's pixel font. */
+        MINECRAFT
+    }
+
     public enum Preset {
+        AURORA("Aurora", 0xA80B0E17, false, 5, true, 4, false, true, false, 0x1CFFFFFF, AccentBar.NONE, 4),
         DARK("Dark", 0xA00E1016, false, 4, true, 4, false, false, false, 0x40FFFFFF, AccentBar.BOTTOM, 4),
         GLASS("Glass", 0x38FFFFFF, true, 6, true, 3, false, true, false, 0x50FFFFFF, AccentBar.NONE, 5),
         MINIMAL("Minimal", 0x00000000, false, 0, false, 3, false, false, false, 0x40FFFFFF, AccentBar.NONE, 2),
@@ -60,7 +69,7 @@ public final class HudTheme extends Module {
         }
     }
 
-    private static final Preset DEFAULT = Preset.DARK;
+    private static final Preset DEFAULT = Preset.AURORA;
 
     private final EnumSetting<Preset> preset = add(new EnumSetting<>("Preset",
         "Sets every value below at once (they can be tweaked afterwards)", DEFAULT));
@@ -82,6 +91,7 @@ public final class HudTheme extends Module {
     private final ColorSetting accent = add(new ColorSetting("Accent", "HUD accent color", 0xFF8B5CF6, false)).visibleWhen(customAccent::get);
     private final ColorSetting textColor = add(new ColorSetting("Text Color", "Color of values", 0xFFECEEF4, false));
     private final BooleanSetting accentLabels = add(new BooleanSetting("Accent Labels", "Draw labels (FPS, Ping...) in the accent color", true));
+    private final EnumSetting<Font> font = add(new EnumSetting<>("Font", "Aurora (same as the menus) or Minecraft's pixel font", Font.AURORA));
     private final BooleanSetting textShadow = add(new BooleanSetting("Text Shadow", "Drop shadow under HUD text", true));
     private final NumberSetting padding = add(new NumberSetting("Padding", "Space between the background edge and the content", DEFAULT.padding, 2, 8, 1));
     private final BooleanSetting animations = add(new BooleanSetting("Animations", "Fade elements in and out and slide changing values", true));
@@ -90,7 +100,12 @@ public final class HudTheme extends Module {
 
     public HudTheme() {
         super("HUD Theme", "Shared look of all HUD elements: background, corners, shadow, outline, accent and presets. "
-            + "While off, HUDs use the default Dark look.", Category.VISUALS);
+            + "While off, HUDs use the default Aurora look.", Category.VISUALS, KeybindSetting.NONE, true);
+    }
+
+    @Override
+    protected boolean shownInListByDefault() {
+        return false;
     }
 
     @Override
@@ -126,7 +141,7 @@ public final class HudTheme extends Module {
         return outline.get();
     }
 
-    // Getters fall back to the defaults (the Dark look) while the module is off. Defaults are stored boxed values,
+    // Getters fall back to the defaults (the Aurora look) while the module is off. Defaults are stored boxed values,
     // so none of this allocates.
 
     private <T> T v(Setting<T> s) {
@@ -188,6 +203,10 @@ public final class HudTheme extends Module {
 
     public boolean accentLabels() {
         return v(accentLabels);
+    }
+
+    public Font font() {
+        return v(font);
     }
 
     public boolean textShadow() {

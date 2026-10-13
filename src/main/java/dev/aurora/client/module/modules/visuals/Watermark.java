@@ -54,8 +54,8 @@ public final class Watermark extends HudModule {
 
         int pad = HudStyle.padding();
         boolean pill = style.get() == Style.PILL;
-        int titleW = tr.getWidth(title);
-        int width = titleW + tr.getWidth(rest) + (pill ? pad * 2 + 6 : 0);
+        int titleW = HudStyle.width(title);
+        int width = titleW + HudStyle.width(rest) + (pill ? pad * 2 + 6 : 0);
         int height = tr.fontHeight + (pill ? pad * 2 : 0);
         int x = 0;
         int y = 0;
@@ -74,10 +74,10 @@ public final class Watermark extends HudModule {
                 (float) (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 400.0 - i * 0.6)))
                 : accent;
             String glyph = ch < 128 && CHARS[ch] != null ? CHARS[ch] : String.valueOf(ch);
-            ctx.drawText(tr, glyph, x, y, color, shadow);
-            x += tr.getWidth(glyph);
+            HudStyle.text(ctx, glyph, x, y, color, shadow);
+            x += HudStyle.width(glyph);
         }
-        ctx.drawText(tr, rest, x, y, HudStyle.sub(), shadow);
+        HudStyle.text(ctx, rest, x, y, HudStyle.sub(), shadow);
         setSize(width, height);
     }
 }

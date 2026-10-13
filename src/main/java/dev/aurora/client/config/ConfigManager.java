@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 /**
@@ -41,7 +42,15 @@ import java.util.regex.Pattern;
  * {@code NAME.json.corrupt-TIMESTAMP} before defaults are written in its place.</p>
  */
 public final class ConfigManager {
-    public static final int FORMAT_VERSION = 1;
+    /**
+     * 2 (1.1.0): modules that are client settings (notifications, chat, menus...) are hidden from the module list by
+     * default; their "Show in List" value from format 1 profiles is not loaded, so upgraded profiles get the new default.
+     * HUD Theme and Aurora Menu became on by default: a format 1 profile that has them off (the old default) loads
+     * them with the new defaults, while one that turned them on keeps its values.
+     */
+    public static final int FORMAT_VERSION = 2;
+    private static final String SHOW_IN_LIST = "Show in List";
+    private static final Set<String> ON_BY_DEFAULT_SINCE_2 = Set.of("hudtheme", "auroramenu");
     public static final String DEFAULT_PROFILE = "default";
     private static final Logger LOGGER = LoggerFactory.getLogger("Aurora/Config");
     private static final Pattern PROFILE_NAME = Pattern.compile("[A-Za-z0-9_\\-]{1,32}");
@@ -197,10 +206,12 @@ public final class ConfigManager {
         try {
             resetAll();
             JsonElement format = rootObj.get("format");
+            int version = 1;
             if (format == null || !format.isJsonPrimitive() || !format.getAsJsonPrimitive().isNumber()) {
                 report.warn("Missing format version; loading best-effort");
-            } else if (format.getAsInt() > FORMAT_VERSION) {
-                report.warn("Profile was written by a newer version (format " + format.getAsInt() + ")");
+            } else {
+                version = format.getAsInt();
+                if (version > FORMAT_VERSION) report.warn("Profile was written by a newer version (format " + version + ")");
             }
             JsonElement modsEl = rootObj.get("modules");
             if (modsEl == null || !modsEl.isJsonObject()) {
@@ -221,11 +232,17 @@ public final class ConfigManager {
                     continue;
                 }
                 JsonObject mo = el.getAsJsonObject();
+                if (version < 2 && ON_BY_DEFAULT_SINCE_2.contains(m.getId()) && isFalse(mo.get("enabled"))) {
+                    m.setEnabled(m.isEnabledByDefault() && m.savesEnabledState(), false);
+                    report.moduleLoaded();
+                    continue;
+                }
                 JsonElement settingsEl = mo.get("settings");
                 if (settingsEl != null && settingsEl.isJsonObject()) {
                     JsonObject settings = settingsEl.getAsJsonObject();
                     for (Setting<?> s : m.getSettings()) {
                         JsonElement value = settings.get(s.getName());
+                        if (version < 2 && SHOW_IN_LIST.equals(s.getName()) && Boolean.FALSE.equals(s.getDefault())) continue;
                         if (value != null && !s.load(value)) {
                             s.reset();
                             report.warn(m.getName() + "." + s.getName() + ": invalid value " + value + ", using default");
@@ -250,6 +267,10 @@ public final class ConfigManager {
         } finally {
             applying = false;
         }
+    }
+
+    private static boolean isFalse(JsonElement e) {
+        return e != null && e.isJsonPrimitive() && e.getAsJsonPrimitive().isBoolean() && !e.getAsBoolean();
     }
 
     private void resetAll() {

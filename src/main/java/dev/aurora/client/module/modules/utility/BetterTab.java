@@ -33,6 +33,11 @@ public final class BetterTab extends Module {
         super("Better Tab", "Tab list with player heads, sorting options and your team at the top.", Category.UTILITY);
     }
 
+    @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
     public boolean forceHeads() {
         return heads.get();
     }

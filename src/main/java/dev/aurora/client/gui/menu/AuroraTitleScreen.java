@@ -1,7 +1,9 @@
 package dev.aurora.client.gui.menu;
 
 import dev.aurora.client.AuroraClient;
-import dev.aurora.client.gui.Theme;
+import dev.aurora.client.gui.ui.Ui;
+import dev.aurora.client.gui.ui.UiFont;
+import dev.aurora.client.util.ColorUtil;
 import dev.aurora.client.module.modules.visuals.AuroraMenu;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.SharedConstants;
@@ -20,8 +22,8 @@ import net.minecraft.util.Util;
  * normal title screen once (also the way to reach buttons other mods add there).
  */
 public class AuroraTitleScreen extends Screen {
-    private static final int BUTTON_W = 200;
-    private static final int BUTTON_H = 20;
+    private static final int BUTTON_W = 210;
+    private static final int BUTTON_H = 22;
     private static final long FADE_MS = 700;
     private static long firstShown = -1;
 
@@ -33,10 +35,10 @@ public class AuroraTitleScreen extends Screen {
     protected void init() {
         if (firstShown < 0) firstShown = Util.getMeasuringTimeMs();
         int x = width / 2 - BUTTON_W / 2;
-        int y = Math.max(height / 2 - 18, 96);
+        int y = buttonsTop();
         int step = BUTTON_H + 6;
         addDrawableChild(new AuroraButton(x, y, BUTTON_W, BUTTON_H, Text.translatable("menu.singleplayer"),
-            b -> client.setScreen(new SelectWorldScreen(this))));
+            b -> client.setScreen(new SelectWorldScreen(this)), true));
         addDrawableChild(new AuroraButton(x, y + step, BUTTON_W, BUTTON_H, Text.translatable("menu.multiplayer"),
             b -> client.setScreen(new MultiplayerScreen(this))));
         int half = (BUTTON_W - 6) / 2;
@@ -53,7 +55,7 @@ public class AuroraTitleScreen extends Screen {
             b -> client.setScreen(new OptionsScreen(this, client.options))));
         addDrawableChild(new AuroraButton(x + half + 6, y + step * 3, half, BUTTON_H, Text.translatable("menu.quit"),
             b -> client.scheduleStop()));
-        addDrawableChild(new AuroraButton(6, height - 22, 90, 16, Text.literal("Vanilla menu"), b -> {
+        addDrawableChild(new AuroraButton(8, height - 24, 96, 16, Text.literal("Vanilla menu"), b -> {
             AuroraMenu.showVanillaOnce();
             client.setScreen(new TitleScreen());
         }));
@@ -69,6 +71,20 @@ public class AuroraTitleScreen extends Screen {
         }
     }
 
+    private int logoSize() {
+        return height < 300 ? 48 : 64;
+    }
+
+    /** Logo (emblem + wordmark + subtitle) above the buttons, centred as a group. */
+    private int logoTop() {
+        int group = logoSize() + 4 + 26 + 16 + (BUTTON_H + 6) * 4;
+        return Math.max(8, (height - group) / 2 - 6);
+    }
+
+    private int buttonsTop() {
+        return logoTop() + logoSize() + 4 + 26 + 18;
+    }
+
     @Override
     public void renderBackground(DrawContext ctx, int mouseX, int mouseY, float delta) {
         AuroraBackground.render(ctx, width, height);
@@ -78,12 +94,12 @@ public class AuroraTitleScreen extends Screen {
     public void render(DrawContext ctx, int mouseX, int mouseY, float delta) {
         super.render(ctx, mouseX, mouseY, delta);
         float fade = Math.min(1f, (Util.getMeasuringTimeMs() - firstShown) / (float) FADE_MS);
-        int logoY = Math.max(16, height / 2 - 18 - 70);
-        AuroraLogo.draw(ctx, width / 2, logoY, fade);
-        String sub = "Client for Minecraft " + SharedConstants.getGameVersion().getName();
-        ctx.drawText(textRenderer, sub, width / 2 - textRenderer.getWidth(sub) / 2, logoY + 46, Theme.SUBTEXT, false);
+        int logoY = logoTop();
+        int logoH = AuroraLogo.draw(ctx, width / 2, logoY, logoSize(), fade);
+        String sub = "Client  ·  Minecraft " + SharedConstants.getGameVersion().getName();
+        UiFont.centered(ctx, sub, width / 2f, logoY + logoH + 2, ColorUtil.withAlpha(Ui.SUBTEXT, Math.max(4, Math.round(255 * fade))), UiFont.Size.BODY, false);
         String version = "Aurora " + AuroraClient.version();
-        ctx.drawText(textRenderer, version, width - 6 - textRenderer.getWidth(version), height - 18, Theme.MUTED, false);
+        UiFont.draw(ctx, version, width - 8 - UiFont.width(version), height - 19, Ui.MUTED);
         if (fade < 1f) ctx.fill(0, 0, width, height, Math.round(255 * (1 - fade)) << 24);
     }
 

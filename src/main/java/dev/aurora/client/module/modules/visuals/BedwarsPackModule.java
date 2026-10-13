@@ -14,6 +14,11 @@ public final class BedwarsPackModule extends Module {
     }
 
     @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
+    @Override
     protected void onEnable() {
         if (mc() == null || mc().options == null) return;
         if (!BedwarsPack.setEnabled(true)) {

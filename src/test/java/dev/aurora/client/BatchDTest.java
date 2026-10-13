@@ -38,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Part 3 (Batch D): game-independent logic. Rendering, screens and mixins need a running client. */
 class BatchDTest {
     private static final List<String> NEW_MODULES = List.of("chatmentions", "chatcopy", "chatsearch", "bettertab",
-        "saturationoverlay", "bettertooltips", "lowhealthwarning", "armorwarning", "hitsounds", "auroramenu");
+        "saturationoverlay", "bettertooltips", "lowhealthwarning", "armorwarning", "hitsounds");
 
     @Test
     void newModulesAreRegisteredOffByDefaultAndNotHudElements() {
@@ -209,9 +209,14 @@ class BatchDTest {
     // ------------------------------------------------------------------ menu
 
     @Test
+    void auroraMenuIsOnByDefault() {
+        assertTrue(new AuroraMenu().isEnabledByDefault(), "part of the redesigned look");
+    }
+
+    @Test
     void vanillaMenuOnce() {
         AuroraMenu menu = new AuroraMenu();
-        assertFalse(menu.replaceTitleScreen(), "off by default");
+        assertFalse(menu.replaceTitleScreen(), "nothing is replaced while the module is disabled");
         menu.setEnabled(true);
         assertTrue(menu.replaceTitleScreen());
         AuroraMenu.showVanillaOnce();

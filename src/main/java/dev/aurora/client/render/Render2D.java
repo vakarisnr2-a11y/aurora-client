@@ -87,6 +87,31 @@ public final class Render2D {
         end(b);
     }
 
+    /** A straight line of {@code thickness} between two points (a quad, so it also works at angles). */
+    public static void line(DrawContext ctx, float x1, float y1, float x2, float y2, float thickness, int color) {
+        float dx = x2 - x1, dy = y2 - y1;
+        float len = (float) Math.sqrt(dx * dx + dy * dy);
+        if (len < 1e-4f) return;
+        float nx = -dy / len * thickness / 2f, ny = dx / len * thickness / 2f;
+        BufferBuilder b = begin(ctx, VertexFormat.DrawMode.QUADS);
+        Matrix4f m = ctx.getMatrices().peek().getPositionMatrix();
+        b.vertex(m, x1 + nx, y1 + ny, 0).color(color);
+        b.vertex(m, x2 + nx, y2 + ny, 0).color(color);
+        b.vertex(m, x2 - nx, y2 - ny, 0).color(color);
+        b.vertex(m, x1 - nx, y1 - ny, 0).color(color);
+        end(b);
+    }
+
+    /** A filled polygon fanned from (cx, cy); works for convex and star-shaped outlines. {@code pts} = x0, y0, x1, y1... */
+    public static void polygon(DrawContext ctx, float cx, float cy, float[] pts, int color) {
+        BufferBuilder b = begin(ctx, VertexFormat.DrawMode.TRIANGLE_FAN);
+        Matrix4f m = ctx.getMatrices().peek().getPositionMatrix();
+        b.vertex(m, cx, cy, 0).color(color);
+        for (int i = 0; i < pts.length; i += 2) b.vertex(m, pts[i], pts[i + 1], 0).color(color);
+        b.vertex(m, pts[0], pts[1], 0).color(color);
+        end(b);
+    }
+
     private static final float[] WAVE_Y = new float[257];
 
     /**

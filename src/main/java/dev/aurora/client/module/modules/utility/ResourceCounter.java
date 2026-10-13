@@ -6,7 +6,6 @@ import dev.aurora.client.module.Category;
 import dev.aurora.client.setting.BooleanSetting;
 import dev.aurora.client.setting.EnumSetting;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.item.Item;
@@ -61,7 +60,7 @@ public final class ResourceCounter extends HudModule {
     private ItemStack[] icons;
 
     public ResourceCounter() {
-        super("Resource Counter", "Shows how much iron, gold, diamonds and emeralds you carry.", Category.UTILITY, 0.0, 0.3, false);
+        super("Resource Counter", "Shows how much iron, gold, diamonds and emeralds you carry.", Category.UTILITY, 0.0, 0.40, false);
     }
 
     @Override
@@ -72,14 +71,13 @@ public final class ResourceCounter extends HudModule {
             icons = new ItemStack[RESOURCES.length];
             for (int i = 0; i < RESOURCES.length; i++) icons[i] = new ItemStack(RESOURCES[i].item());
         }
-        TextRenderer tr = mc.textRenderer;
         int n = 0;
         int textW = 0;
         for (int i = 0; i < RESOURCES.length; i++) {
             counts[i] = p == null ? (editor ? SAMPLE_COUNTS[i] : 0) : p.getInventory().count(RESOURCES[i].item());
             if (!isShown(enabled(RESOURCES[i]), counts[i], hideEmpty.get(), editor)) continue;
             labels[i] = String.valueOf(counts[i]);
-            textW = Math.max(textW, tr.getWidth(labels[i]));
+            textW = Math.max(textW, HudStyle.width(labels[i]));
             shown[n++] = i;
         }
         if (n == 0) {
@@ -95,7 +93,7 @@ public final class ResourceCounter extends HudModule {
             height = PAD * 2 + n * ROW - 1;
         } else {
             width = PAD * 2 - GAP;
-            for (int k = 0; k < n; k++) width += ICON + 2 + tr.getWidth(labels[shown[k]]) + GAP;
+            for (int k = 0; k < n; k++) width += ICON + 2 + HudStyle.width(labels[shown[k]]) + GAP;
             height = PAD * 2 + ICON;
         }
         if (background.get()) HudStyle.background(ctx, 0, 0, width, height);
@@ -106,7 +104,7 @@ public final class ResourceCounter extends HudModule {
             int i = shown[k];
             int y = vertical ? PAD + k * ROW : PAD;
             int color = colored.get() ? RESOURCES[i].color : HudStyle.text();
-            int labelW = tr.getWidth(labels[i]);
+            int labelW = HudStyle.width(labels[i]);
             if (right) {
                 int iconX = width - PAD - ICON;
                 ctx.drawItem(icons[i], iconX, y);

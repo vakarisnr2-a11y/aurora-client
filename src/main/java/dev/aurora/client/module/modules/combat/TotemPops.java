@@ -7,7 +7,6 @@ import dev.aurora.client.module.Category;
 import dev.aurora.client.setting.BooleanSetting;
 import dev.aurora.client.setting.NumberSetting;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
@@ -86,7 +85,6 @@ public final class TotemPops extends HudModule {
     @Override
     public void render(DrawContext ctx, float tickDelta, boolean editor) {
         MinecraftClient mc = MinecraftClient.getInstance();
-        TextRenderer tr = mc.textRenderer;
         rows.clear();
         tracker.mostRecent(maxRows.getInt(), rows);
         if (rows.isEmpty() && editor) {
@@ -101,8 +99,8 @@ public final class TotemPops extends HudModule {
         int nameW = 0;
         int countW = 0;
         for (Tracker.Entry e : rows) {
-            nameW = Math.max(nameW, tr.getWidth(e.name));
-            countW = Math.max(countW, tr.getWidth(String.valueOf(e.pops)));
+            nameW = Math.max(nameW, HudStyle.width(e.name));
+            countW = Math.max(countW, HudStyle.width(String.valueOf(e.pops)));
         }
         int width = PAD + ICON + 3 + nameW + 6 + countW + PAD + 1;
         int height = PAD * 2 + rows.size() * ROW - 1;
@@ -113,7 +111,7 @@ public final class TotemPops extends HudModule {
             ctx.drawItem(icon, PAD, y);
             HudStyle.text(ctx, e.name, PAD + ICON + 3, y + 4, HudStyle.text());
             String count = String.valueOf(e.pops);
-            HudStyle.text(ctx, count, width - PAD - 1 - tr.getWidth(count), y + 4, HudStyle.accent());
+            HudStyle.text(ctx, count, width - PAD - 1 - HudStyle.width(count), y + 4, HudStyle.accent());
         }
         setSize(width, height);
     }

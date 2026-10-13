@@ -45,6 +45,11 @@ public final class LowEndMode extends Module {
     }
 
     @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
+    @Override
     protected void onEnable() {
         MinecraftClient mc = mc();
         if (mc == null || mc.options == null) return;

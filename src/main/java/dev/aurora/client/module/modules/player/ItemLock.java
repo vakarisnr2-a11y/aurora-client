@@ -48,6 +48,11 @@ public final class ItemLock extends Module {
         on(Render2DEvent.class, this::renderHotbarLocks);
     }
 
+    @Override
+    protected boolean shownInListByDefault() {
+        return false;
+    }
+
     private long mask() {
         String raw = locked.get();
         if (!raw.equals(maskFor)) {

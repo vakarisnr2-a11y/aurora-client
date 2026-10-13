@@ -111,8 +111,7 @@ public final class Zoom extends Module {
         if (!showLevel.get() || age > LEVEL_SHOWN_MS) return;
         float alpha = age < LEVEL_SHOWN_MS - 300 ? 1f : (LEVEL_SHOWN_MS - age) / 300f;
         String text = String.format(Locale.ROOT, "%.1fx", currentLevel());
-        var tr = MinecraftClient.getInstance().textRenderer;
-        int x = e.width / 2 - tr.getWidth(text) / 2;
+        int x = e.width / 2 - HudStyle.width(text) / 2;
         int y = e.height / 2 + 12;
         HudStyle.text(e.context, text, x, y, ColorUtil.fade(HudStyle.accent() | 0xFF000000, alpha));
     }

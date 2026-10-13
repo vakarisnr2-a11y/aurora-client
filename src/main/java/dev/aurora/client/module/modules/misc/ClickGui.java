@@ -13,18 +13,13 @@ import dev.aurora.client.setting.StringSetting;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 
 /** Opens the ClickGUI and stores every theme / layout setting of it. */
 public final class ClickGui extends Module {
-    public static final String PROFILES_PANEL = "PROFILES";
-    public static final String FAVORITES_PANEL = "FAVORITES";
-
     private final EnumSetting<Theme.Preset> preset = add(new EnumSetting<>("Theme",
         "Color theme of the GUI, HUD and notifications", Theme.Preset.MIDNIGHT));
     private final ColorSetting accent = add(new ColorSetting("Accent",
@@ -39,22 +34,14 @@ public final class ClickGui extends Module {
 
     private final StringSetting favorites = add(new StringSetting("Favorites", "Ids of pinned modules", "", 4096)).hide();
 
-    private final Map<String, NumberSetting> panelX = new HashMap<>();
-    private final Map<String, NumberSetting> panelY = new HashMap<>();
-    private final Map<String, BooleanSetting> panelOpen = new HashMap<>();
-
     public ClickGui() {
         super("ClickGUI", "Opens this menu. Also stores the theme, scale and animation settings.", Category.MISC,
             GLFW.GLFW_KEY_RIGHT_SHIFT, false);
-        for (Category c : Category.values()) addPanel(c.name());
-        addPanel(PROFILES_PANEL);
-        addPanel(FAVORITES_PANEL);
     }
 
-    private void addPanel(String key) {
-        panelX.put(key, add(new NumberSetting("Panel " + key + " X", "", -1, -1, 8000, 0.5)).hide());
-        panelY.put(key, add(new NumberSetting("Panel " + key + " Y", "", -1, -1, 8000, 0.5)).hide());
-        panelOpen.put(key, add(new BooleanSetting("Panel " + key + " Open", "", true)).hide());
+    @Override
+    protected boolean shownInListByDefault() {
+        return false;
     }
 
     @Override
@@ -121,18 +108,6 @@ public final class ClickGui extends Module {
 
     public boolean pausesGame() {
         return pauseGame.get();
-    }
-
-    public NumberSetting panelX(String key) {
-        return panelX.get(key);
-    }
-
-    public NumberSetting panelY(String key) {
-        return panelY.get(key);
-    }
-
-    public BooleanSetting panelOpen(String key) {
-        return panelOpen.get(key);
     }
 
     // ------------------------------------------------------------------ favorites

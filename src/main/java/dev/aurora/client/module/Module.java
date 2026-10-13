@@ -53,9 +53,18 @@ public abstract class Module {
         this.enabledByDefault = enabledByDefault;
         this.keybind = new KeybindSetting("Keybind", "Key or mouse button that toggles " + name
             + ". Right-click the field to switch between Toggle and Hold.", defaultKey, defaultBindMode());
-        this.drawn = new BooleanSetting("Show in List", "Show " + name + " in the module list HUD while enabled", true);
+        this.drawn = new BooleanSetting("Show in List", "Show " + name + " in the module list HUD while enabled", shownInListByDefault());
         keybind.addListener(this::settingChanged);
         drawn.addListener(this::settingChanged);
+    }
+
+    /**
+     * Whether the module list shows this module by default. Client settings and quality-of-life tweaks that change
+     * nothing about gameplay (notifications, chat, menus, themes) return false. Called from the constructor, so it
+     * must only return a constant.
+     */
+    protected boolean shownInListByDefault() {
+        return true;
     }
 
     /** Hold-to-use modules (zoom, freelook) override this. */

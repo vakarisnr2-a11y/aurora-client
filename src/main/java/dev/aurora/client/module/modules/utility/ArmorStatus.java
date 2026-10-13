@@ -32,7 +32,7 @@ public final class ArmorStatus extends HudModule {
     private ItemStack[] samples;
 
     public ArmorStatus() {
-        super("Armor Status", "Shows your armor and held items with durability.", Category.UTILITY, 1.0, 0.75, true);
+        super("Armor Status", "Shows your armor and held items with durability.", Category.UTILITY, 1.0, 0.66, true);
     }
 
     @Override
@@ -84,10 +84,10 @@ public final class ArmorStatus extends HudModule {
                 case PERCENT, VALUE -> {
                     String text = mode.get() == DurabilityMode.PERCENT ? Math.round(fraction * 100) + "%" : String.valueOf(remaining);
                     if (vertical) {
-                        int tx = right ? x - 2 - tr.getWidth(text) : x + 20;
+                        int tx = right ? x - 2 - HudStyle.width(text) : x + 20;
                         HudStyle.text(ctx, text, tx, y + 5, color);
                     } else {
-                        HudStyle.text(ctx, text, x + 9 - tr.getWidth(text) / 2f, y + 18, color);
+                        HudStyle.text(ctx, text, x + 9 - HudStyle.width(text) / 2f, y + 18, color);
                     }
                 }
                 case BAR -> {
