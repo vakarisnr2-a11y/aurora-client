@@ -1,7 +1,7 @@
 package dev.aurora.client.module.modules.visuals;
 
 import dev.aurora.client.AuroraClient;
-import dev.aurora.client.gui.Theme;
+import dev.aurora.client.hud.HudStyle;
 import dev.aurora.client.hud.HudModule;
 import dev.aurora.client.module.Category;
 import dev.aurora.client.module.Module;
@@ -61,7 +61,10 @@ public final class ModuleList extends HudModule {
         visible.clear();
         for (Module m : AuroraClient.modules().getAll()) {
             Animation a = animations.computeIfAbsent(m, k -> new Animation(0, 12));
-            a.setTarget(m.isEnabled() && m.isDrawn() && m != this ? 1 : 0);
+            double target = m.isEnabled() && m.isDrawn() && m != this ? 1 : 0;
+            a.setTarget(target);
+            a.setSpeed(12 * HudStyle.animationSpeed());
+            if (!HudStyle.animations()) a.snap(target);
             if (a.update() > 0.01) {
                 visible.add(m);
                 labels.put(m, label(m));
@@ -69,7 +72,7 @@ public final class ModuleList extends HudModule {
         }
         if (visible.isEmpty()) {
             if (editor) {
-                ctx.drawText(tr, "Module List", 0, 0, Theme.accent(), true);
+                HudStyle.text(ctx, "Module List", 0, 0, HudStyle.accent());
                 setSize(tr.getWidth("Module List"), tr.fontHeight);
             } else {
                 setSize(60, 10);
@@ -86,6 +89,8 @@ public final class ModuleList extends HudModule {
         for (Module m : visible) maxWidth = Math.max(maxWidth, tr.getWidth(labels.get(m)));
         boolean right = isRightSide();
         int lineHeight = tr.fontHeight + 3;
+        int bg = HudStyle.background();
+        boolean shadow = HudStyle.textShadow();
         int fullWidth = maxWidth + 6;
         float y = 0;
         for (int i = 0; i < visible.size(); i++) {
@@ -99,14 +104,14 @@ public final class ModuleList extends HudModule {
             if (background.get()) {
                 float bx = right ? x - 2 : 0;
                 float bw = right ? fullWidth - bx : x + w + 2;
-                Render2D.rect(ctx, bx, y, bw, lineHeight * a, ColorUtil.fade(Theme.hudBackground(), a));
+                Render2D.rect(ctx, bx, y, bw, lineHeight * a, ColorUtil.fade(bg, a));
             }
             if (sidebar.get()) {
                 Render2D.rect(ctx, right ? fullWidth - 1.5f : 0, y, 1.5f, lineHeight * a, ColorUtil.fade(color, a));
             }
             ctx.getMatrices().push();
             ctx.getMatrices().translate(x, y + 2, 0);
-            ctx.drawText(tr, text, 0, 0, ColorUtil.fade(color, Math.max(0.05f, a)), true);
+            ctx.drawText(tr, text, 0, 0, ColorUtil.fade(color, Math.max(0.05f, a)), shadow);
             ctx.getMatrices().pop();
             y += lineHeight * a;
         }
@@ -115,9 +120,9 @@ public final class ModuleList extends HudModule {
 
     private int color(int index, int count) {
         return switch (colorMode.get()) {
-            case ACCENT -> Theme.accent(index * 120L);
+            case ACCENT -> HudStyle.accent(index * 120L);
             case RAINBOW -> ColorUtil.rainbow(index * 150L, 0.6f, 0.65f, 1f);
-            case GRADIENT -> ColorUtil.lerp(Theme.accent(), ColorUtil.brighten(Theme.accent(), 0.55f),
+            case GRADIENT -> ColorUtil.lerp(HudStyle.accent(), ColorUtil.brighten(HudStyle.accent(), 0.55f),
                 count <= 1 ? 0 : (float) Math.abs(Math.sin(System.currentTimeMillis() / 900.0 + index * 0.35)));
             case STATIC -> staticColor.getColor();
         };

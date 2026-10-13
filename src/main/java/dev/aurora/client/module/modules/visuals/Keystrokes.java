@@ -1,9 +1,8 @@
 package dev.aurora.client.module.modules.visuals;
 
-import dev.aurora.client.gui.Theme;
+import dev.aurora.client.hud.HudStyle;
 import dev.aurora.client.hud.HudModule;
 import dev.aurora.client.module.Category;
-import dev.aurora.client.render.Render2D;
 import dev.aurora.client.setting.BooleanSetting;
 import dev.aurora.client.setting.NumberSetting;
 import dev.aurora.client.util.Animation;
@@ -63,19 +62,27 @@ public final class Keystrokes extends HudModule {
         Animation a = presses[index];
         a.setTarget(binding.isPressed() ? 1 : 0);
         float p = (float) a.update();
-        int bg = ColorUtil.lerp(Theme.hudBackground(), ColorUtil.withAlpha(Theme.accent(), 200), p);
-        Render2D.roundedRect(ctx, x, y, w, h, Theme.radius(), bg);
+        int accent = HudStyle.accent();
+        int bg = ColorUtil.lerp(HudStyle.cell(), ColorUtil.withAlpha(accent, 210), p);
+        if (p > 0.01f && HudStyle.animations()) {
+            // Pressed keys shrink slightly toward their centre.
+            float inset = p * 0.8f;
+            HudStyle.cell(ctx, x + inset, y + inset, w - inset * 2, h - inset * 2, bg);
+        } else {
+            HudStyle.cell(ctx, x, y, w, h, bg);
+        }
         String label = index == 4 ? "LMB" : index == 5 ? "RMB" : index == 6 ? "——" : binding.getBoundKeyLocalizedText().getString();
         if (label.length() > 4) label = label.substring(0, 4);
-        int textColor = ColorUtil.lerp(Theme.TEXT, 0xFF101014, p * 0.8f);
+        int textColor = ColorUtil.lerp(HudStyle.text(), 0xFF101014, p * 0.8f);
+        boolean shadow = HudStyle.textShadow() && p < 0.5f; // no light shadow under dark text on a pressed key
         if (sub == null) {
-            ctx.drawText(tr, label, x + (w - tr.getWidth(label)) / 2, y + (h - 7) / 2, textColor, false);
+            HudStyle.text(ctx, label, x + (w - tr.getWidth(label)) / 2f, y + (h - 7) / 2f, textColor, shadow);
         } else {
-            ctx.drawText(tr, label, x + (w - tr.getWidth(label)) / 2, y + h / 2 - 8, textColor, false);
+            HudStyle.text(ctx, label, x + (w - tr.getWidth(label)) / 2f, y + h / 2f - 8, textColor, shadow);
             ctx.getMatrices().push();
             ctx.getMatrices().translate(x + w / 2f, y + h / 2f + 2, 0);
             ctx.getMatrices().scale(0.6f, 0.6f, 1);
-            ctx.drawText(tr, sub, -tr.getWidth(sub) / 2, 0, textColor, false);
+            HudStyle.text(ctx, sub, -tr.getWidth(sub) / 2f, 0, textColor, shadow);
             ctx.getMatrices().pop();
         }
     }

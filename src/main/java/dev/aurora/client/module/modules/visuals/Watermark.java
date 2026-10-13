@@ -1,7 +1,7 @@
 package dev.aurora.client.module.modules.visuals;
 
 import dev.aurora.client.AuroraClient;
-import dev.aurora.client.gui.Theme;
+import dev.aurora.client.hud.HudStyle;
 import dev.aurora.client.hud.HudModule;
 import dev.aurora.client.module.Category;
 import dev.aurora.client.render.Render2D;
@@ -23,6 +23,12 @@ public final class Watermark extends HudModule {
     }
 
     private static final DateTimeFormatter TIME = DateTimeFormatter.ofPattern("HH:mm");
+    /** One-character strings for ASCII, so the per-letter gradient does not allocate a string per letter per frame. */
+    private static final String[] CHARS = new String[128];
+
+    static {
+        for (int i = 32; i < 127; i++) CHARS[i] = String.valueOf((char) i);
+    }
 
     private final StringSetting text = add(new StringSetting("Text", "Watermark text", "Aurora", 24));
     private final EnumSetting<Style> style = add(new EnumSetting<>("Style", "Watermark look", Style.PILL));
@@ -46,28 +52,32 @@ public final class Watermark extends HudModule {
         if (clock.get()) info.append(" §8|§r ").append(LocalTime.now().format(TIME));
         String rest = info.toString();
 
+        int pad = HudStyle.padding();
+        boolean pill = style.get() == Style.PILL;
         int titleW = tr.getWidth(title);
-        int width = titleW + tr.getWidth(rest) + (style.get() == Style.PILL ? 14 : 0);
-        int height = tr.fontHeight + (style.get() == Style.PILL ? 8 : 0);
+        int width = titleW + tr.getWidth(rest) + (pill ? pad * 2 + 6 : 0);
+        int height = tr.fontHeight + (pill ? pad * 2 : 0);
         int x = 0;
         int y = 0;
-        if (style.get() == Style.PILL) {
-            Render2D.shadow(ctx, 0, 0, width, height, Theme.radius() + 1, 3, 0x70000000);
-            Render2D.roundedRect(ctx, 0, 0, width, height, Theme.radius() + 1, Theme.hudBackground());
-            Render2D.roundedRect(ctx, 3, 3, 2, height - 6, 1, Theme.accent());
-            x = 9;
-            y = 4;
+        int accent = HudStyle.accent();
+        if (pill) {
+            HudStyle.background(ctx, 0, 0, width, height);
+            Render2D.roundedRect(ctx, pad - 1, 3, 2, height - 6, 1, accent);
+            x = pad + 5;
+            y = pad;
         }
+        boolean shadow = HudStyle.textShadow();
         for (int i = 0; i < title.length(); i++) {
-            String ch = String.valueOf(title.charAt(i));
+            char ch = title.charAt(i);
             int color = gradient.get()
-                ? ColorUtil.lerp(Theme.accent(), ColorUtil.brighten(Theme.accent(), 0.6f),
+                ? ColorUtil.lerp(accent, ColorUtil.brighten(accent, 0.6f),
                 (float) (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 400.0 - i * 0.6)))
-                : Theme.accent();
-            ctx.drawText(tr, ch, x, y, color, true);
-            x += tr.getWidth(ch);
+                : accent;
+            String glyph = ch < 128 && CHARS[ch] != null ? CHARS[ch] : String.valueOf(ch);
+            ctx.drawText(tr, glyph, x, y, color, shadow);
+            x += tr.getWidth(glyph);
         }
-        ctx.drawText(tr, rest, x, y, Theme.SUBTEXT, true);
+        ctx.drawText(tr, rest, x, y, HudStyle.sub(), shadow);
         setSize(width, height);
     }
 }

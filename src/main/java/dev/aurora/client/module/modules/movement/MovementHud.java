@@ -1,7 +1,7 @@
 package dev.aurora.client.module.modules.movement;
 
 import dev.aurora.client.event.events.TickEvent;
-import dev.aurora.client.gui.Theme;
+import dev.aurora.client.hud.HudLine;
 import dev.aurora.client.hud.HudModule;
 import dev.aurora.client.hud.HudStyle;
 import dev.aurora.client.module.Category;
@@ -9,7 +9,6 @@ import dev.aurora.client.setting.BooleanSetting;
 import dev.aurora.client.setting.EnumSetting;
 import dev.aurora.client.util.Animation;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.network.ClientPlayerEntity;
 
@@ -34,6 +33,8 @@ public final class MovementHud extends HudModule {
     private final BooleanSetting vertical = add(new BooleanSetting("Vertical Speed", "Show vertical speed", false));
 
     private final Animation speed = new Animation(0, 10);
+    private final HudLine line = new HudLine(false);
+    private final StringBuilder sb = new StringBuilder(48);
     private double verticalSpeed;
 
     public MovementHud() {
@@ -48,13 +49,12 @@ public final class MovementHud extends HudModule {
 
     @Override
     public void render(DrawContext ctx, float tickDelta, boolean editor) {
-        TextRenderer tr = MinecraftClient.getInstance().textRenderer;
         ClientPlayerEntity p = MinecraftClient.getInstance().player;
-        StringBuilder sb = new StringBuilder();
+        sb.setLength(0);
         sb.append(String.format(Locale.ROOT, "%.2f %s", speed.update() * unit.get().multiplier, unit.get().suffix));
         if (vertical.get()) sb.append(String.format(Locale.ROOT, " §8|§r %+.1f", verticalSpeed * unit.get().multiplier));
         if (state.get()) sb.append(" §8|§r ").append(stateOf(p));
-        setSize(HudStyle.drawLabelValue(ctx, "Speed", sb.toString(), Theme.TEXT, true), HudStyle.lineHeight());
+        setSize(line.draw(ctx, "Speed", sb.toString(), HudStyle.text(), true), HudStyle.lineHeight());
     }
 
     private static String stateOf(ClientPlayerEntity p) {

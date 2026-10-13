@@ -1,6 +1,7 @@
 package dev.aurora.client.module.modules.combat;
 
-import dev.aurora.client.gui.Theme;
+import com.mojang.blaze3d.systems.RenderSystem;
+import dev.aurora.client.hud.HudStyle;
 import dev.aurora.client.hud.HudModule;
 import dev.aurora.client.module.Category;
 import dev.aurora.client.render.Render2D;
@@ -51,6 +52,7 @@ public final class TargetHud extends HudModule {
         LivingEntity target = currentTarget();
         if (target == null && editor) target = mc.player;
         visibility.setTarget(target != null ? 1 : 0);
+        if (!HudStyle.animations()) visibility.snap(target != null ? 1 : 0);
         float v = (float) visibility.update();
         if (target != null) shown = target;
         int w = 140;
@@ -65,52 +67,64 @@ public final class TargetHud extends HudModule {
         float scale = 0.9f + 0.1f * v;
         ctx.getMatrices().scale(scale, scale, 1);
         ctx.getMatrices().translate(-w / 2f, -h / 2f, 0);
+        // Fade on top of the HUD renderer's own fade by multiplying the shader alpha.
+        ctx.draw();
+        float outerAlpha = RenderSystem.getShaderColor()[3];
+        RenderSystem.setShaderColor(1, 1, 1, outerAlpha * v);
+        try {
+            draw(ctx, mc, tr, t, w, h);
+        } finally {
+            ctx.draw();
+            RenderSystem.setShaderColor(1, 1, 1, outerAlpha);
+            ctx.getMatrices().pop();
+        }
+    }
 
-        Render2D.shadow(ctx, 0, 0, w, h, 6, 4, ColorUtil.withAlpha(0, (int) (110 * v)));
-        Render2D.roundedRect(ctx, 0, 0, w, h, 6, ColorUtil.fade(Theme.panel(), v));
-
+    private void draw(DrawContext ctx, MinecraftClient mc, TextRenderer tr, LivingEntity t, int w, int h) {
+        HudStyle.background(ctx, 0, 0, w, h);
+        int pad = 6;
+        int head = h - pad * 2;
         // Head: player skin face, or the mob's spawn egg as an icon.
         if (t instanceof AbstractClientPlayerEntity player) {
-            PlayerSkinDrawer.draw(ctx, player.getSkinTextures(), 6, 6, 34);
+            PlayerSkinDrawer.draw(ctx, player.getSkinTextures(), pad, pad, head);
         } else {
             if (eggFor != t.getType()) {
                 SpawnEggItem egg = SpawnEggItem.forEntity(t.getType());
                 eggIcon = egg == null ? ItemStack.EMPTY : new ItemStack(egg);
                 eggFor = t.getType();
             }
-            Render2D.roundedRect(ctx, 6, 6, 34, 34, 4, ColorUtil.fade(Theme.surface(), v));
+            HudStyle.cell(ctx, pad, pad, head, head, HudStyle.cell());
             if (!eggIcon.isEmpty()) {
                 ctx.getMatrices().push();
-                ctx.getMatrices().translate(9, 9, 0);
+                ctx.getMatrices().translate(pad + 3, pad + 3, 0);
                 ctx.getMatrices().scale(1.75f, 1.75f, 1);
                 ctx.drawItem(eggIcon, 0, 0);
                 ctx.getMatrices().pop();
             }
         }
         if (t.hurtTime > 0) {
-            Render2D.roundedRect(ctx, 6, 6, 34, 34, 4, ColorUtil.withAlpha(0xFF3030, (int) (t.hurtTime * 12 * v)));
+            Render2D.roundedRect(ctx, pad, pad, head, head, Math.min(4, HudStyle.radius()), ColorUtil.withAlpha(0xFF3030, t.hurtTime * 12));
         }
 
-        int alpha = Math.max(4, (int) (255 * v));
+        int textX = pad + head + 6;
+        int barW = w - textX - pad;
         String name = t.getName().getString();
-        if (tr.getWidth(name) > 88) name = tr.trimToWidth(name, 84) + "…";
-        ctx.drawText(tr, name, 46, 7, ColorUtil.withAlpha(Theme.TEXT, alpha), false);
+        if (tr.getWidth(name) > barW) name = tr.trimToWidth(name, barW - 4) + "…";
+        HudStyle.text(ctx, name, textX, 7, HudStyle.text());
 
         float max = Math.max(1, t.getMaxHealth());
         float hp = t.getHealth() + t.getAbsorptionAmount();
         health.setTarget(Math.min(1, hp / max));
         float shownHp = (float) health.update();
-        Render2D.roundedRect(ctx, 46, 19, 88, 5, 2.5f, ColorUtil.fade(0xFF000000, 0.45f * v));
-        Render2D.roundedRect(ctx, 46, 19, 88 * shownHp, 5, 2.5f,
-            ColorUtil.fade(ColorUtil.healthColor(shownHp), v), ColorUtil.fade(ColorUtil.darken(ColorUtil.healthColor(shownHp), 0.25f), v));
+        HudStyle.bar(ctx, textX, 19, barW, 5, shownHp, ColorUtil.healthColor(shownHp));
         String info = String.format(Locale.ROOT, "%.1f ❤", hp / 2f);
         if (mc.player != null && t != mc.player) {
             info += String.format(Locale.ROOT, "  %.1fm", mc.player.distanceTo(t));
         }
-        ctx.drawText(tr, info, 46, 28, ColorUtil.withAlpha(Theme.SUBTEXT, alpha), false);
+        HudStyle.text(ctx, info, textX, 28, HudStyle.sub());
 
         if (armor.get()) {
-            int x = 134;
+            int x = w - pad;
             for (ItemStack piece : t.getArmorItems()) {
                 if (piece.isEmpty()) continue;
                 x -= 11;
@@ -121,6 +135,5 @@ public final class TargetHud extends HudModule {
                 ctx.getMatrices().pop();
             }
         }
-        ctx.getMatrices().pop();
     }
 }

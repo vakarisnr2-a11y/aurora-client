@@ -1,10 +1,8 @@
 package dev.aurora.client.module.modules.utility;
 
-import dev.aurora.client.gui.Theme;
 import dev.aurora.client.hud.HudModule;
 import dev.aurora.client.hud.HudStyle;
 import dev.aurora.client.module.Category;
-import dev.aurora.client.render.Render2D;
 import dev.aurora.client.setting.BooleanSetting;
 import dev.aurora.client.setting.EnumSetting;
 import dev.aurora.client.util.ColorUtil;
@@ -68,7 +66,7 @@ public final class ArmorStatus extends HudModule {
         int cellH = vertical ? 18 : 18 + (textW > 0 ? 9 : 0);
         int width = vertical ? cellW + 4 : Math.max(1, count) * cellW + 4;
         int height = vertical ? Math.max(1, count) * cellH + 4 : cellH + 4;
-        if (background.get() && count > 0) HudStyle.panel(ctx, 0, 0, width, height);
+        if (background.get() && count > 0) HudStyle.background(ctx, 0, 0, width, height);
 
         for (int i = 0; i < count; i++) {
             ItemStack s = stacks[i];
@@ -87,16 +85,15 @@ public final class ArmorStatus extends HudModule {
                     String text = mode.get() == DurabilityMode.PERCENT ? Math.round(fraction * 100) + "%" : String.valueOf(remaining);
                     if (vertical) {
                         int tx = right ? x - 2 - tr.getWidth(text) : x + 20;
-                        ctx.drawText(tr, text, tx, y + 5, color, true);
+                        HudStyle.text(ctx, text, tx, y + 5, color);
                     } else {
-                        ctx.drawText(tr, text, x + 9 - tr.getWidth(text) / 2, y + 18, color, true);
+                        HudStyle.text(ctx, text, x + 9 - tr.getWidth(text) / 2f, y + 18, color);
                     }
                 }
                 case BAR -> {
                     ctx.getMatrices().push();
                     ctx.getMatrices().translate(0, 0, 200);
-                    Render2D.rect(ctx, x + 2, y + 15, 14, 2, 0xFF000000);
-                    Render2D.rect(ctx, x + 2, y + 15, 14 * fraction, 1, color);
+                    HudStyle.bar(ctx, x + 2, y + 15, 14, 2, fraction, color);
                     ctx.getMatrices().pop();
                 }
                 case NONE -> {
@@ -108,6 +105,6 @@ public final class ArmorStatus extends HudModule {
     }
 
     public int textColor() {
-        return Theme.TEXT;
+        return HudStyle.text();
     }
 }

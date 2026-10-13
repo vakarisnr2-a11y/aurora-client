@@ -1,8 +1,8 @@
 package dev.aurora.client.module.modules.utility;
 
-import dev.aurora.client.gui.Theme;
 import dev.aurora.client.hud.HudModule;
 import dev.aurora.client.hud.HudStyle;
+import dev.aurora.client.hud.SmoothBox;
 import dev.aurora.client.module.Category;
 import dev.aurora.client.setting.BooleanSetting;
 import dev.aurora.client.setting.NumberSetting;
@@ -13,18 +13,20 @@ import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 public final class Coordinates extends HudModule {
+    private static final int MAX_LINES = 4;
+
     private final NumberSetting decimals = add(new NumberSetting("Decimals", "Decimal places", 1, 0, 3, 1));
     private final BooleanSetting direction = add(new BooleanSetting("Direction", "Show facing direction", true));
     private final BooleanSetting otherDimension = add(new BooleanSetting("Nether/Overworld", "Show converted coordinates of the other dimension", true));
     private final BooleanSetting biome = add(new BooleanSetting("Biome", "Show the current biome", false));
     private final BooleanSetting background = add(new BooleanSetting("Background", "Draw a background", true));
 
-    private final List<String> lines = new ArrayList<>(4);
+    private final String[] labels = new String[MAX_LINES];
+    private final String[] values = new String[MAX_LINES];
+    private final SmoothBox box = new SmoothBox();
 
     public Coordinates() {
         super("Coordinates", "Shows your position, facing and converted dimension coordinates.", Category.UTILITY, 0.0, 0.92, true);
@@ -35,10 +37,11 @@ public final class Coordinates extends HudModule {
         MinecraftClient mc = MinecraftClient.getInstance();
         TextRenderer tr = mc.textRenderer;
         ClientPlayerEntity p = mc.player;
-        lines.clear();
+        int n = 0;
         String fmt = "%." + decimals.getInt() + "f";
         double x = p == null ? 0 : p.getX(), y = p == null ? 64 : p.getY(), z = p == null ? 0 : p.getZ();
-        lines.add("§rXYZ §f" + f(fmt, x) + " " + f(fmt, y) + " " + f(fmt, z));
+        labels[n] = "XYZ";
+        values[n++] = f(fmt, x) + " " + f(fmt, y) + " " + f(fmt, z);
         if (direction.get() && p != null) {
             Direction d = p.getHorizontalFacing();
             String axis = switch (d) {
@@ -47,29 +50,39 @@ public final class Coordinates extends HudModule {
                 case WEST -> "-X";
                 default -> "+X";
             };
-            lines.add("§rFacing §f" + capitalize(d.asString()) + " (" + axis + ")");
+            labels[n] = "Facing";
+            values[n++] = capitalize(d.asString()) + " (" + axis + ")";
         }
         if (otherDimension.get() && p != null && mc.world != null) {
             if (mc.world.getRegistryKey() == World.NETHER) {
-                lines.add("§rOverworld §f" + f(fmt, x * 8) + " " + f(fmt, z * 8));
+                labels[n] = "Overworld";
+                values[n++] = f(fmt, x * 8) + " " + f(fmt, z * 8);
             } else if (mc.world.getRegistryKey() == World.OVERWORLD) {
-                lines.add("§rNether §f" + f(fmt, x / 8) + " " + f(fmt, z / 8));
+                labels[n] = "Nether";
+                values[n++] = f(fmt, x / 8) + " " + f(fmt, z / 8);
             }
         }
         if (biome.get() && p != null && mc.world != null) {
             String id = mc.world.getBiome(p.getBlockPos()).getKey().map(k -> k.getValue().getPath()).orElse("unknown");
-            lines.add("§rBiome §f" + capitalize(id.replace('_', ' ')));
+            labels[n] = "Biome";
+            values[n++] = capitalize(id.replace('_', ' '));
         }
-        int w = 0;
-        for (String line : lines) w = Math.max(w, tr.getWidth(line));
+        int pad = HudStyle.padding();
+        int labelW = 0;
+        for (int i = 0; i < n; i++) labelW = Math.max(labelW, tr.getWidth(labels[i]));
+        int valueW = 0;
+        for (int i = 0; i < n; i++) valueW = Math.max(valueW, tr.getWidth(values[i]));
         int lh = tr.fontHeight + 2;
-        int width = w + HudStyle.PADDING * 2;
-        int height = lines.size() * lh + HudStyle.PADDING * 2 - 2;
-        if (background.get()) HudStyle.panel(ctx, 0, 0, width, height);
-        for (int i = 0; i < lines.size(); i++) {
-            ctx.drawText(tr, lines.get(i), HudStyle.PADDING, HudStyle.PADDING + i * lh, Theme.accent(), true);
+        box.update(labelW + 4 + valueW + pad * 2, n * lh + pad * 2 - 2);
+        if (background.get()) HudStyle.background(ctx, 0, 0, box.width(), box.height());
+        int label = HudStyle.label();
+        int text = HudStyle.text();
+        for (int i = 0; i < n; i++) {
+            int ly = pad + i * lh;
+            HudStyle.text(ctx, labels[i], pad, ly, label);
+            HudStyle.text(ctx, values[i], pad + labelW + 4, ly, text);
         }
-        setSize(width, height);
+        setSize(box.intWidth(), box.intHeight());
     }
 
     private static String f(String fmt, double v) {

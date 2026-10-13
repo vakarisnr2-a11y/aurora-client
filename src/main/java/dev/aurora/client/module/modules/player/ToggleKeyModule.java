@@ -3,7 +3,8 @@ package dev.aurora.client.module.modules.player;
 import dev.aurora.client.event.events.KeyEvent;
 import dev.aurora.client.event.events.MouseButtonEvent;
 import dev.aurora.client.event.events.TickEvent;
-import dev.aurora.client.gui.Theme;
+import dev.aurora.client.hud.HudLine;
+import dev.aurora.client.hud.HudStyle;
 import dev.aurora.client.hud.HudModule;
 import dev.aurora.client.module.Category;
 import dev.aurora.client.setting.BooleanSetting;
@@ -21,6 +22,9 @@ import org.lwjgl.glfw.GLFW;
  */
 public abstract class ToggleKeyModule extends HudModule {
     private final BooleanSetting indicator = add(new BooleanSetting("Indicator", "Show the toggle state on screen", true));
+    private final BooleanSetting background = add(new BooleanSetting("Background", "Draw the indicator on a background", true))
+        .visibleWhen(indicator::get);
+    private final HudLine line = new HudLine(true);
     private boolean latched;
 
     protected ToggleKeyModule(String name, String description, double x, double y) {
@@ -67,11 +71,13 @@ public abstract class ToggleKeyModule extends HudModule {
             setSize(1, 1);
             return;
         }
-        MinecraftClient mc = MinecraftClient.getInstance();
-        String state = latched ? "[" + label() + " (Toggled)]" : binding().isPressed() ? "[" + label() + " (Held)]" : "";
-        if (state.isEmpty() && editor) state = "[" + label() + "]";
-        ctx.drawText(mc.textRenderer, state, 0, 0, latched ? Theme.accent() : Theme.SUBTEXT, true);
-        setSize(Math.max(10, mc.textRenderer.getWidth(state)), mc.textRenderer.fontHeight);
+        String state = latched ? "Toggled" : binding().isPressed() ? "Held" : editor ? "Off" : "";
+        if (state.isEmpty()) {
+            setSize(HudStyle.width(label()) + HudStyle.padding() * 2, HudStyle.lineHeight());
+            return;
+        }
+        int color = latched ? HudStyle.accent() : HudStyle.sub();
+        setSize(line.draw(ctx, label(), state, color, background.get()), HudStyle.lineHeight());
     }
 
     @Override

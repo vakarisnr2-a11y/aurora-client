@@ -36,7 +36,10 @@ public final class Animation {
     public double update() {
         long now = System.nanoTime();
         if (lastUpdate < 0) lastUpdate = now;
-        double dt = Math.min(0.1, (now - lastUpdate) / 1_000_000_000d);
+        double dt = (now - lastUpdate) / 1_000_000_000d;
+        // A long gap means the animation was not drawn for a while (screen closed, HUD hidden): continue from where
+        // it stopped instead of jumping most of the way in one frame.
+        if (dt > 0.25) dt = 1 / 60d;
         lastUpdate = now;
         value += (target - value) * (1 - Math.exp(-speed * dt));
         if (Math.abs(target - value) < 1e-4) value = target;

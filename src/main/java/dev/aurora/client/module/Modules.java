@@ -40,6 +40,7 @@ import dev.aurora.client.module.modules.visuals.Fullbright;
 import dev.aurora.client.module.modules.visuals.GearTags;
 import dev.aurora.client.module.modules.visuals.HitColor;
 import dev.aurora.client.module.modules.visuals.HotbarStyle;
+import dev.aurora.client.module.modules.visuals.HudTheme;
 import dev.aurora.client.module.modules.visuals.Keystrokes;
 import dev.aurora.client.module.modules.visuals.LowFire;
 import dev.aurora.client.module.modules.visuals.ModuleList;
@@ -70,7 +71,7 @@ public final class Modules {
             // Visuals
             new Fullbright(), new Crosshair(), new Nametags(), new GearTags(), new HitColor(), new NoHurtCam(), new Perspective(),
             new LowFire(), new BedwarsPackModule(), new ModuleList(), new Watermark(), new Keystrokes(), new OldAnimations(),
-            new HotbarStyle(),
+            new HotbarStyle(), new HudTheme(),
             // Movement
             new Sprint(), new SafeWalk(), new Step(), new Freelook(), new CameraSmoothing(), new MovementHud(),
             // Player

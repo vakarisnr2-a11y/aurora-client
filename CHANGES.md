@@ -111,3 +111,26 @@ crosshair, Totem Pops top left of center).
   conflict with another mod that changes the same hotbar drawing.
 - Totem Pops only sees pops and deaths of players near you. A count resets when the player's health reaches 0 on your
   client; servers that respawn players without a death keep counting until the Timeout.
+
+## 1.1.0 Part 1: HUD overhaul
+
+> **Not tested in-game.** Compiles and the game-independent logic (theme presets, anchoring, snapping, layouts,
+> value transitions) is unit-tested. No world was joined, so the look and the animations are unverified.
+
+- **HUD Theme** (Visuals, off by default): one shared style for every HUD element. Settings: Preset (Dark, Glass,
+  Minimal, Neon; picking one sets all values), Background, Gradient, Corner Radius, Shadow (+ Size, Accent Glow),
+  Outline (+ Accent Outline / Outline Color), Accent Bar (none/bottom/left/top), Custom Accent (otherwise the ClickGUI
+  accent), Text Color, Accent Labels, Text Shadow, Padding, Animations, Animation Speed. While the module is off,
+  HUDs use the default Dark look.
+- **Animations**: elements fade and pop in when enabled and fade out when disabled; backgrounds ease to the new size
+  when text changes; changed values (FPS, Ping, CPS, Reach, Combo, toggle state) slide in while the old value fades out.
+- **HUD editor**: snap to screen edges/centre and to other elements' edges and centres with alignment guides, optional
+  grid snap (G, grid size setting), Shift to move freely, arrow keys to nudge (Shift: 10 px), scroll or +/- to scale,
+  R to reset an element, Delete or right-click to hide. Toolbar: Grid, Snap, Elements (show/hide any element),
+  Layouts (save the current layout under a name, load, right-click twice to delete, open folder), Reset All.
+  Dropped elements are anchored to the screen third they are in (corner, edge or centre) and keep their distance to
+  that edge when the window is resized; the editor shows the anchor. Layouts are stored in `config/aurora/layouts/`.
+  Old profiles keep their positions (elements stay on the fraction-based "Auto" anchor until moved).
+- Every HUD element now draws through the shared style: FPS, Ping, CPS, Coordinates, Potion Effects, Armor Status,
+  Durability, Resource Counter, Keystrokes, Target HUD, Combo Counter, Reach Display, Arrow Counter, Bow Charge,
+  Totem Pops, Movement HUD, Time & Weather, Module List, Watermark and the Toggle Sprint/Sneak indicators.

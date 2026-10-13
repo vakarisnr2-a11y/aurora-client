@@ -1,7 +1,6 @@
 package dev.aurora.client.module.modules.combat;
 
 import dev.aurora.client.event.events.TickEvent;
-import dev.aurora.client.gui.Theme;
 import dev.aurora.client.hud.HudModule;
 import dev.aurora.client.hud.HudStyle;
 import dev.aurora.client.module.Category;
@@ -107,14 +106,14 @@ public final class TotemPops extends HudModule {
         }
         int width = PAD + ICON + 3 + nameW + 6 + countW + PAD + 1;
         int height = PAD * 2 + rows.size() * ROW - 1;
-        if (background.get()) HudStyle.panel(ctx, 0, 0, width, height);
+        if (background.get()) HudStyle.background(ctx, 0, 0, width, height);
         for (int i = 0; i < rows.size(); i++) {
             Tracker.Entry e = rows.get(i);
             int y = PAD + i * ROW;
             ctx.drawItem(icon, PAD, y);
-            ctx.drawText(tr, e.name, PAD + ICON + 3, y + 4, Theme.TEXT, true);
+            HudStyle.text(ctx, e.name, PAD + ICON + 3, y + 4, HudStyle.text());
             String count = String.valueOf(e.pops);
-            ctx.drawText(tr, count, width - PAD - 1 - tr.getWidth(count), y + 4, Theme.accent(), true);
+            HudStyle.text(ctx, count, width - PAD - 1 - tr.getWidth(count), y + 4, HudStyle.accent());
         }
         setSize(width, height);
     }

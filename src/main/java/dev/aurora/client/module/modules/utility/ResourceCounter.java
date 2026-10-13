@@ -1,6 +1,5 @@
 package dev.aurora.client.module.modules.utility;
 
-import dev.aurora.client.gui.Theme;
 import dev.aurora.client.hud.HudModule;
 import dev.aurora.client.hud.HudStyle;
 import dev.aurora.client.module.Category;
@@ -99,22 +98,22 @@ public final class ResourceCounter extends HudModule {
             for (int k = 0; k < n; k++) width += ICON + 2 + tr.getWidth(labels[shown[k]]) + GAP;
             height = PAD * 2 + ICON;
         }
-        if (background.get()) HudStyle.panel(ctx, 0, 0, width, height);
+        if (background.get()) HudStyle.background(ctx, 0, 0, width, height);
 
         boolean right = vertical && isRightSide();
         int x = PAD;
         for (int k = 0; k < n; k++) {
             int i = shown[k];
             int y = vertical ? PAD + k * ROW : PAD;
-            int color = colored.get() ? RESOURCES[i].color : Theme.TEXT;
+            int color = colored.get() ? RESOURCES[i].color : HudStyle.text();
             int labelW = tr.getWidth(labels[i]);
             if (right) {
                 int iconX = width - PAD - ICON;
                 ctx.drawItem(icons[i], iconX, y);
-                ctx.drawText(tr, labels[i], iconX - 2 - labelW, y + 4, color, true);
+                HudStyle.text(ctx, labels[i], iconX - 2 - labelW, y + 4, color);
             } else {
                 ctx.drawItem(icons[i], x, y);
-                ctx.drawText(tr, labels[i], x + ICON + 2, y + 4, color, true);
+                HudStyle.text(ctx, labels[i], x + ICON + 2, y + 4, color);
                 if (!vertical) x += ICON + 2 + labelW + GAP;
             }
         }

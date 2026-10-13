@@ -2,12 +2,10 @@ package dev.aurora.client.module.modules.utility;
 
 import dev.aurora.client.AuroraClient;
 import dev.aurora.client.event.events.TickEvent;
-import dev.aurora.client.gui.Theme;
 import dev.aurora.client.hud.HudModule;
 import dev.aurora.client.hud.HudStyle;
 import dev.aurora.client.module.Category;
 import dev.aurora.client.notification.NotificationManager;
-import dev.aurora.client.render.Render2D;
 import dev.aurora.client.setting.BooleanSetting;
 import dev.aurora.client.setting.NumberSetting;
 import dev.aurora.client.util.ColorUtil;
@@ -68,12 +66,11 @@ public final class DurabilityDisplay extends HudModule {
         int remaining = stack.getMaxDamage() - stack.getDamage();
         float fraction = remaining / (float) stack.getMaxDamage();
         int color = ColorUtil.healthColor(fraction);
-        HudStyle.panel(ctx, 0, y, width, 22);
+        HudStyle.background(ctx, 0, y, width, 22);
         ctx.drawItem(stack, 3, y + 3);
         String text = remaining + " / " + stack.getMaxDamage();
-        ctx.drawText(tr, text, 23, y + 3, Theme.TEXT, true);
-        Render2D.roundedRect(ctx, 23, y + 14, width - 28, 3, 1.5f, 0x60000000);
-        Render2D.roundedRect(ctx, 23, y + 14, (width - 28) * fraction, 3, 1.5f, color);
+        HudStyle.text(ctx, text, 23, y + 3, HudStyle.text());
+        HudStyle.bar(ctx, 23, y + 14, width - 28, 3, fraction, color);
         return y + 24;
     }
 }

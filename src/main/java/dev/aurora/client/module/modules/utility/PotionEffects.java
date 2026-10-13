@@ -1,8 +1,8 @@
 package dev.aurora.client.module.modules.utility;
 
-import dev.aurora.client.gui.Theme;
 import dev.aurora.client.hud.HudModule;
 import dev.aurora.client.hud.HudStyle;
+import dev.aurora.client.hud.SmoothBox;
 import dev.aurora.client.module.Category;
 import dev.aurora.client.setting.BooleanSetting;
 import dev.aurora.client.util.ColorUtil;
@@ -16,10 +16,15 @@ import net.minecraft.entity.effect.StatusEffectInstance;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
 
 /** Active potion effects with icons, level and remaining time. Can hide the vanilla effect HUD. */
 public final class PotionEffects extends HudModule {
     private static final String[] ROMAN = {"", "", " II", " III", " IV", " V", " VI", " VII", " VIII", " IX", " X"};
+    private static final Comparator<StatusEffectInstance> LONGEST_FIRST =
+        Comparator.comparingInt(StatusEffectInstance::getDuration).reversed();
+    private static final int ROW = 20;
+    private static final int ICON = 18;
 
     private final BooleanSetting hideVanilla = add(new BooleanSetting("Hide Vanilla", "Hide Minecraft's effect icons in the corner", true));
     private final BooleanSetting icons = add(new BooleanSetting("Icons", "Show effect icons", true));
@@ -27,6 +32,7 @@ public final class PotionEffects extends HudModule {
     private final BooleanSetting background = add(new BooleanSetting("Background", "Draw a background", true));
 
     private final List<StatusEffectInstance> effects = new ArrayList<>();
+    private final SmoothBox box = new SmoothBox();
 
     public PotionEffects() {
         super("Potion Effects", "Lists your active effects with time remaining.", Category.UTILITY, 1.0, 0.45, true);
@@ -42,47 +48,53 @@ public final class PotionEffects extends HudModule {
         TextRenderer tr = mc.textRenderer;
         effects.clear();
         if (mc.player != null) effects.addAll(mc.player.getStatusEffects());
-        effects.sort(Comparator.comparingInt(StatusEffectInstance::getDuration).reversed());
+        effects.sort(LONGEST_FIRST);
         boolean right = isRightSide();
-        int lh = 20;
+        int pad = HudStyle.padding();
         if (effects.isEmpty()) {
             if (editor) {
-                String sample = "Speed II  1:30";
-                int w = tr.getWidth(sample) + HudStyle.PADDING * 2;
-                if (background.get()) HudStyle.panel(ctx, 0, 0, w, lh);
-                ctx.drawText(tr, sample, HudStyle.PADDING, 6, Theme.TEXT, true);
-                setSize(w, lh);
+                String name = "Speed II";
+                String time = "1:30";
+                int w = tr.getWidth(name) + pad * 2;
+                box.update(w, ROW + pad);
+                if (background.get()) HudStyle.background(ctx, 0, 0, box.width(), box.height());
+                HudStyle.text(ctx, name, pad, pad / 2f + 2, 0xFF86EFAC);
+                HudStyle.text(ctx, time, pad, pad / 2f + 11, HudStyle.sub());
+                setSize(box.intWidth(), box.intHeight());
             } else {
-                setSize(80, lh);
+                setSize(80, ROW);
             }
             return;
         }
         int maxW = 0;
         for (StatusEffectInstance e : effects) maxW = Math.max(maxW, tr.getWidth(name(e)));
-        int iconW = icons.get() ? 20 : 0;
-        int width = maxW + iconW + HudStyle.PADDING * 2;
-        int height = effects.size() * lh;
-        if (background.get()) HudStyle.panel(ctx, 0, 0, width, height);
+        int iconW = icons.get() ? ICON + 3 : 0;
+        int width = maxW + iconW + pad * 2;
+        int top = pad / 2;
+        box.update(width, effects.size() * ROW + top * 2);
+        if (background.get()) HudStyle.background(ctx, 0, 0, box.width(), box.height());
+        float boxW = box.width();
+        int sub = HudStyle.sub();
         for (int i = 0; i < effects.size(); i++) {
             StatusEffectInstance e = effects.get(i);
-            int y = i * lh;
-            int textX = right ? width - HudStyle.PADDING - tr.getWidth(name(e)) - iconW : HudStyle.PADDING + iconW;
+            int y = top + i * ROW;
+            String name = name(e);
             if (icons.get()) {
                 Sprite sprite = mc.getStatusEffectSpriteManager().getSprite(e.getEffectType());
-                int ix = right ? width - HudStyle.PADDING - 18 : HudStyle.PADDING;
-                ctx.drawSprite(ix, y + 1, 0, 18, 18, sprite);
+                int ix = right ? Math.round(boxW) - pad - ICON : pad;
+                ctx.drawSprite(ix, y + 1, 0, ICON, ICON, sprite);
             }
-            int color = !typeColors.get() ? Theme.TEXT
+            int color = !typeColors.get() ? HudStyle.text()
                 : e.getEffectType().value().getCategory() == StatusEffectCategory.HARMFUL ? 0xFFF87171 : 0xFF86EFAC;
-            ctx.drawText(tr, name(e), textX, y + 2, color, true);
+            float textX = right ? boxW - pad - iconW - tr.getWidth(name) : pad + iconW;
+            HudStyle.text(ctx, name, textX, y + 2, color);
             String time = duration(e);
             boolean expiring = !e.isInfinite() && e.getDuration() < 200;
-            int timeColor = expiring ? ColorUtil.lerp(Theme.SUBTEXT, 0xFFF87171,
-                (float) (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 120.0))) : Theme.SUBTEXT;
-            int timeX = right ? width - HudStyle.PADDING - iconW - tr.getWidth(time) : HudStyle.PADDING + iconW;
-            ctx.drawText(tr, time, timeX, y + 11, timeColor, true);
+            int timeColor = expiring ? ColorUtil.lerp(sub, 0xFFF87171, (float) (0.5 + 0.5 * Math.sin(System.currentTimeMillis() / 120.0))) : sub;
+            float timeX = right ? boxW - pad - iconW - tr.getWidth(time) : pad + iconW;
+            HudStyle.text(ctx, time, timeX, y + 11, timeColor);
         }
-        setSize(width, height);
+        setSize(box.intWidth(), box.intHeight());
     }
 
     private static String name(StatusEffectInstance e) {
@@ -94,6 +106,6 @@ public final class PotionEffects extends HudModule {
     private static String duration(StatusEffectInstance e) {
         if (e.isInfinite()) return "∞";
         int seconds = e.getDuration() / 20;
-        return seconds / 60 + ":" + String.format("%02d", seconds % 60);
+        return seconds / 60 + ":" + String.format(Locale.ROOT, "%02d", seconds % 60);
     }
 }

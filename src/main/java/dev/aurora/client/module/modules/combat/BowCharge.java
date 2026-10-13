@@ -1,12 +1,9 @@
 package dev.aurora.client.module.modules.combat;
 
-import dev.aurora.client.gui.Theme;
 import dev.aurora.client.hud.HudModule;
 import dev.aurora.client.hud.HudStyle;
 import dev.aurora.client.module.Category;
-import dev.aurora.client.render.Render2D;
 import dev.aurora.client.setting.BooleanSetting;
-import dev.aurora.client.util.ColorUtil;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.font.TextRenderer;
 import net.minecraft.client.gui.DrawContext;
@@ -46,12 +43,11 @@ public final class BowCharge extends HudModule {
         String label = ready ? "Ready" : percent.get() ? Math.round(progress * 100) + "%" : "Bow";
         int width = BAR_W + PAD * 2;
         int height = PAD + tr.fontHeight + 2 + BAR_H + PAD;
-        if (background.get()) HudStyle.panel(ctx, 0, 0, width, height);
-        int color = ready ? READY_COLOR : Theme.accent();
-        ctx.drawText(tr, label, (width - tr.getWidth(label)) / 2, PAD, ready ? READY_COLOR : Theme.TEXT, true);
+        if (background.get()) HudStyle.background(ctx, 0, 0, width, height);
+        int color = ready ? READY_COLOR : HudStyle.accent();
+        HudStyle.text(ctx, label, (width - tr.getWidth(label)) / 2f, PAD, ready ? READY_COLOR : HudStyle.text());
         float barY = PAD + tr.fontHeight + 2;
-        Render2D.roundedRect(ctx, PAD, barY, BAR_W, BAR_H, 1.5f, ColorUtil.withAlpha(0x000000, 0x90));
-        Render2D.roundedRect(ctx, PAD, barY, BAR_W * progress, BAR_H, 1.5f, color);
+        HudStyle.bar(ctx, PAD, barY, BAR_W, BAR_H, progress, color);
         setSize(width, height);
     }
 

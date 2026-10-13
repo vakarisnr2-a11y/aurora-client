@@ -1,6 +1,5 @@
 package dev.aurora.client.module.modules.combat;
 
-import dev.aurora.client.gui.Theme;
 import dev.aurora.client.hud.HudModule;
 import dev.aurora.client.hud.HudStyle;
 import dev.aurora.client.module.Category;
@@ -47,9 +46,9 @@ public final class ArrowCounter extends HudModule {
         String text = String.valueOf(count);
         int width = PAD + ICON + 2 + tr.getWidth(text) + PAD + 1;
         int height = ICON + PAD * 2;
-        if (background.get()) HudStyle.panel(ctx, 0, 0, width, height);
+        if (background.get()) HudStyle.background(ctx, 0, 0, width, height);
         ctx.drawItem(icon, PAD, PAD);
-        ctx.drawText(tr, text, PAD + ICON + 2, PAD + 4, color(count, lowWarning.getInt()), true);
+        HudStyle.text(ctx, text, PAD + ICON + 2, PAD + 4, color(count, lowWarning.getInt()));
         setSize(width, height);
     }
 
@@ -67,6 +66,6 @@ public final class ArrowCounter extends HudModule {
 
     /** Red at or below the warning threshold (a threshold of 0 never warns). */
     public static int color(int count, int lowWarning) {
-        return lowWarning > 0 && count <= lowWarning ? LOW_COLOR : Theme.TEXT;
+        return lowWarning > 0 && count <= lowWarning ? LOW_COLOR : HudStyle.text();
     }
 }
