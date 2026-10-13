@@ -9,7 +9,7 @@ import dev.aurora.client.pack.BedwarsPack;
 /** Switches the bundled Aurora Bedwars resource pack on and off (triggers a resource reload). */
 public final class BedwarsPackModule extends Module {
     public BedwarsPackModule() {
-        super("Bedwars Pack", "Enables the bundled Aurora Bedwars texture pack (short swords, clean wool, beds and more).",
+        super("Bedwars Pack", "Enables the bundled Aurora Bedwars texture pack (short swords, Aurora blocks, beds and a dark GUI).",
             Category.VISUALS);
     }
 

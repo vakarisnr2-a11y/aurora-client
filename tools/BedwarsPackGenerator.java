@@ -51,6 +51,7 @@ public class BedwarsPackGenerator {
         TeamBlocks.generate();
         World.generate();
         Gui.generate();
+        Effects.generate();
         System.out.println("Generated " + written + " textures in " + root.toAbsolutePath());
     }
 
@@ -1572,6 +1573,107 @@ public class BedwarsPackGenerator {
                 img.set(10 + i, 7, w);
             }
             img.set(7, 7, w);
+            return img;
+        }
+    }
+    // =====================================================================================================
+    // Group 7: effects, pack icon and description
+    // =====================================================================================================
+
+    /** Low fire, hit particles, the aurora enchantment glint, the pack icon and pack.mcmeta. */
+    static final class Effects {
+        private Effects() {
+        }
+
+        static void generate() throws IOException {
+            for (String f : new String[]{"fire_0", "fire_1"}) {
+                save(lowFire(v("block/" + f)), "block/" + f);
+                copyVanilla("block/" + f + ".png.mcmeta");
+            }
+            save(star(false), "particle/critical_hit");
+            save(star(true), "particle/enchanted_hit");
+            save(glint(), "misc/enchanted_glint_item");
+            save(glint(), "misc/enchanted_glint_entity");
+            Files.writeString(root.resolve("pack.mcmeta"), """
+                {
+                  "pack": {
+                    "pack_format": 34,
+                    "description": "§dAurora Bedwars §7· short swords, Aurora blocks & GUI"
+                  }
+                }
+                """, StandardCharsets.UTF_8);
+            ImageIO.write(packIcon().toBuffered(), "png", root.resolve("pack.png").toFile());
+            written++;
+        }
+
+        /**
+         * Low fire: every animation frame is squashed to 9 of its 16 rows, anchored at the bottom, so burning
+         * players see much less fire on screen (the same textures are used for fire blocks, which get shorter too).
+         */
+        static Img lowFire(Img src) {
+            Img out = new Img(src.w, src.h);
+            int frames = src.h / 16, keep = 9;
+            for (int f = 0; f < frames; f++) {
+                for (int y = 0; y < keep; y++) {
+                    int sy = (int) Math.floor(y * 16.0 / keep);
+                    for (int x = 0; x < 16; x++) out.set(x, f * 16 + 16 - keep + y, src.get(x, f * 16 + sy));
+                }
+            }
+            return out;
+        }
+
+        /** Clean 8x8 hit sparkles: a four-pointed star for crits, a diagonal one for enchanted hits. */
+        static Img star(boolean diagonal) {
+            String[] plus = {"...#....", "...#....", "..###...", "#######.", "..###...", "...#....", "...#....", "........"};
+            String[] cross = {"#.....#.", ".#...#..", "..#.#...", "...#....", "..#.#...", ".#...#..", "#.....#.", "........"};
+            String[] p = diagonal ? cross : plus;
+            Img img = new Img(8, 8);
+            for (int y = 0; y < 8; y++) {
+                for (int x = 0; x < 8; x++) {
+                    if (p[y].charAt(x) != '#') continue;
+                    boolean core = Math.abs(x - 3) <= 1 && Math.abs(y - 3) <= 1;
+                    img.set(x, y, core ? 0xFFFFFFFF : 0xFFD0D0D0);
+                }
+            }
+            return img;
+        }
+
+        /** The enchantment glint as soft diagonal aurora bands (teal, violet, pink); black adds nothing. */
+        static Img glint() {
+            int n = 128;
+            Img img = new Img(n, n);
+            int[] colors = {0xFF2DD4BF, 0xFF8B5CF6, 0xFFEC4899, 0xFF38BDF8};
+            for (int y = 0; y < n; y++) {
+                for (int x = 0; x < n; x++) {
+                    double u = (x + y) / (double) n * Math.PI * 2;
+                    double band = 0.5 + 0.5 * Math.sin(u * 3) * Math.sin(u * 2 + 1.3);
+                    double v = Math.pow(Math.max(0, band), 1.6) * 0.75;
+                    double hue = ((x - y + n) / (double) n * 2) % colors.length;
+                    int i = (int) Math.floor(hue);
+                    int c = Col.mix(colors[i % colors.length], colors[(i + 1) % colors.length], hue - i);
+                    img.set(x, y, 0xFF000000 | (Col.mix(0xFF000000, c, v) & 0xFFFFFF));
+                }
+            }
+            return img;
+        }
+
+        /** The Aurora mod icon with the short diamond sword in the corner. */
+        static Img packIcon() throws IOException {
+            Path icon = root.resolve("../../assets/aurora/icon.png").normalize();
+            BufferedImage b = ImageIO.read(icon.toFile());
+            Img img = new Img(b.getWidth(), b.getHeight());
+            BufferedImage argb = new BufferedImage(b.getWidth(), b.getHeight(), BufferedImage.TYPE_INT_ARGB);
+            argb.getGraphics().drawImage(b, 0, 0, null);
+            argb.getRGB(0, 0, img.w, img.h, img.px, 0, img.w);
+            Img sword = Grade.apply(Weapons.shortSword(v("item/diamond_sword")), ITEM_GRADE);
+            int scale = Math.max(1, img.w / 40), ox = img.w - 16 * scale - img.w / 20, oy = img.h - 16 * scale - img.h / 20;
+            for (int y = 0; y < 16; y++) {
+                for (int x = 0; x < 16; x++) {
+                    int c = sword.get(x, y);
+                    if (Col.a(c) == 0) continue;
+                    for (int yy = 0; yy < scale; yy++) for (int xx = 0; xx < scale; xx++) img.over(ox + x * scale + xx, oy + y * scale + yy, c);
+                }
+            }
             return img;
         }
     }

@@ -112,6 +112,7 @@ public final class AuroraClient implements ClientModInitializer {
 
         HudRenderCallback.EVENT.register((context, tickCounter) -> {
             MinecraftClient mc = MinecraftClient.getInstance();
+            if (mc.options.hudHidden) return; // F1 (and Screenshot's Hide HUD) hide Aurora's HUD too, like vanilla's
             float delta = tickCounter.getTickDelta(true);
             int w = context.getScaledWindowWidth();
             int h = context.getScaledWindowHeight();

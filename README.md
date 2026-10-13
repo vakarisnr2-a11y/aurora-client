@@ -18,7 +18,8 @@ set JAVA_HOME=%APPDATA%\.minecraft\runtime\java-runtime-delta\windows\java-runti
 gradlew build        (jar -> build\libs\aurora-client-1.1.0.jar, ~30 s after the first run)
 gradlew runClient    (dev client; the first run downloads game assets)
 ```
-Regenerate the texture pack: `java tools/BedwarsPackGenerator.java src/main/resources/resourcepacks/aurora_bedwars`
+Regenerate the texture pack (reads the vanilla textures from your Minecraft 1.21.1 jar, found automatically or
+passed as the second argument): `java tools/BedwarsPackGenerator.java src/main/resources/resourcepacks/aurora_bedwars`
 
 Regenerate the logo and mod icon: `java -Djava.awt.headless=true tools/LogoGenerator.java src/main/resources/assets/aurora`
 
@@ -26,11 +27,11 @@ Regenerate the logo and mod icon: `java -Djava.awt.headless=true tools/LogoGener
 - **Combat:** Target HUD, Combo Counter, Reach Display, Damage Numbers, Hit Particles (crit/sharpness multiplier), Hitboxes,
   Arrow Counter, Bow Charge, Totem Pops, Hit Sounds (custom hit sound, optional vanilla mute)
 - **Visuals:** Fullbright, Crosshair (incl. Pixel style), Nametags, Gear Tags (enemy armor/sword tier on nametags), Hit Color,
-  No Hurt Cam, Perspective, Low Fire, Bedwars Pack, Module List, Watermark, Keystrokes, Old Animations (1.7 swing and
-  sword-block look), Hotbar Style, HUD Theme (shared HUD look, on by default; Aurora/Dark/Glass/Minimal/Neon
-  presets, Aurora or Minecraft font), Scoreboard (movable sidebar, hide red numbers), Crosshair Editor (pixel
-  crosshair painter), Saturation Overlay, Low Health Warning, Aurora Menu (on by default: main menu, menu/loading
-  backgrounds, splash)
+  No Hurt Cam, Perspective, Low Fire, Bedwars Pack (Aurora pack: short swords, own blocks, dark GUI), Module List,
+  Watermark, Keystrokes, Old Animations (1.7 swing and sword-block look), Hotbar Style, HUD Theme (shared HUD look,
+  on by default; Aurora/Dark/Glass/Minimal/Neon presets, Aurora or Minecraft font), Scoreboard (movable sidebar, hide
+  red numbers), Crosshair Editor (pixel crosshair painter), Saturation Overlay, Low Health Warning, Aurora Menu (on by
+  default: main menu, menu/loading backgrounds, splash)
 - **Movement:** Sprint, Safe Walk, Step, Freelook (hold L-Alt), Camera Smoothing, Movement HUD
 - **Player:** Auto Tool, Inventory Sorter (middle-click in inventory/chest), Toggle Sprint, Toggle Sneak, Item Lock (K: no dropping locked slots)
 - **World:** World Color, Block Outline, Time & Weather, TNT Timer (fuse countdown above primed TNT), Item Physics,

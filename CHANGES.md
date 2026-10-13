@@ -114,11 +114,11 @@ crosshair, Totem Pops top left of center).
 
 ## 1.1.0
 
-Version 1.1.0 (`mod_version=1.1.0`) contains Parts 1–4 below: the HUD overhaul, Batch C, Batch D and the UI
-redesign, 18 new modules (72 in total) and upgrades to Zoom, Screenshot, Crosshair, the ClickGUI and the HUD editor.
+Version 1.1.0 (`mod_version=1.1.0`) contains Parts 1–5 below: the HUD overhaul, Batch C, Batch D, the UI
+redesign and the new Aurora Bedwars pack, 18 new modules (72 in total) and upgrades to Zoom, Screenshot, Crosshair, the ClickGUI and the HUD editor.
 **Nothing in 1.1.0 was play-tested**: it compiles, 92 unit tests pass, all mixin targets were checked with `javap` and
 a headless dev client applied every mixin, drew the new screens and joined a generated singleplayer world for
-screenshots (Part 4). No server was joined and nobody played with it.
+screenshots (Parts 4 and 5). No server was joined and nobody played with it.
 
 ## 1.1.0 Part 1: HUD overhaul
 
@@ -444,3 +444,34 @@ Drawn from scratch with the same light and clean surfaces. Slabs and stairs use 
 - **XP bar** fill as a teal-to-violet gradient. **Crosshair**: four short arms around a gap and a center dot.
 - **Hearts** (every kind: normal, absorbing, frozen, poisoned, withered, hardcore, blinking, mount), **hunger** and
   **armor** icons with the Aurora grade.
+
+### Effects, icon and description
+- **Low fire**: every fire animation frame is squashed to the bottom 9 of its 16 rows, so burning shows far less fire
+  on screen. Fire blocks in the world are shorter too.
+- **Hit particles**: a clean four-pointed star for critical hits and a diagonal sparkle for enchanted hits (the game
+  still colors them).
+- **Enchantment glint** as soft diagonal aurora bands (teal, violet, pink, sky) instead of vanilla's purple. It is
+  very visible in Bedwars, where Sharpness and Protection upgrades are on most gear.
+- **Pack icon**: the Aurora emblem with the short diamond sword. **Description**: "Aurora Bedwars · short swords,
+  Aurora blocks & GUI" (pack format 34).
+
+### Checked in game
+A headless dev client (temporary, uncommitted hook) enabled the pack with the Bedwars Pack module in a generated
+flat world. It loaded without texture errors. The hook built a wall of the new blocks with beds, a chest, an ender
+chest and TNT, held enchanted short swords, wore leather, iron and diamond armor, and opened the inventory and a
+6-row chest screen ("Item Shop") for screenshots. The titles were light and readable, every slot lined up, and the
+blocks, beds and chests looked as designed. Not tried on a server.
+
+### Fixed along the way
+- Aurora's HUD elements, overlays and notifications kept drawing when the HUD was hidden with F1, which also broke
+  the Screenshot module's Hide HUD option. They now hide with the vanilla HUD.
+
+### Skipped or limited
+- **32x**: the pack is 16x, as you allowed. A smart 2x upscale of vanilla items looked wobbly, and redrawn 32x
+  items drifted too far from vanilla. Exact 16x pixels with targeted edits keep items crisp and familiar.
+- Potion colors (Speed, Jump Boost, Invisibility) come from the game's tint, so the pack keeps the liquid neutral
+  instead of drawing per-effect bottles (that would need an OptiFine-style CIT mod).
+- The Bridge Egg, Bedbug and Magic Milk are plain egg, snowball and milk items on servers, so they use those
+  textures. Blast-proof glass is team stained glass.
+- Only the inventory and chest screens are themed dark. Other container screens (furnace, anvil and others) keep
+  vanilla's light panels because their titles are drawn dark.
