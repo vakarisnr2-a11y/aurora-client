@@ -120,6 +120,23 @@ redesign and the new bundled Bedwars pack (3Supay 16x), 18 new modules (72 in to
 a headless dev client applied every mixin, drew the new screens and joined a generated singleplayer world for
 screenshots (Parts 4 and 5). No server was joined and nobody played with it.
 
+## 1.1.0: Minecraft 1.21 support
+
+The mod now runs on **Minecraft 1.21** as well as 1.21.1, with one jar for both.
+- `fabric.mod.json` used to require `~1.21.1`. That refused 1.21 and also allowed 1.21.2 up to 1.22, which changed
+  too much for this mod and would crash it. It now declares `>=1.21 <1.21.2-`: 1.21 and 1.21.1 only.
+  `MinecraftVersionTest` checks the range.
+- How it was checked:
+  - Built against Minecraft 1.21 (Yarn `1.21+build.9`): no source changes were needed and all tests passed.
+  - Compared with the 1.21.1 jar: every class file and the mixin refmap are byte-identical. Only the manifest's
+    informational `Fabric-Minecraft-Version` differs.
+  - Ran the dev client on 1.21. All 72 modules and every mixin applied (Mixin audit, injectors required), and the
+    menus, ClickGUI, HUD editor, keybinds, crosshair editor, a singleplayer world (HUD, chat features,
+    notifications) and the bundled Bedwars pack (blocks, beds, chests, GUI titles) all worked.
+  - Repeated with the oldest Fabric API built for 1.21 (`0.102.0+1.21`): it compiles and runs too. The Fabric API
+    the build uses (`0.116.17+1.21.1`) itself supports 1.21 and 1.21.1.
+- The build still targets 1.21.1. The README says how to switch to 1.21 for testing.
+
 ## 1.1.0 Part 1: HUD overhaul
 
 > **Not tested in-game.** Compiles and the game-independent logic (theme presets, anchoring, snapping, layouts,

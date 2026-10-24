@@ -1,11 +1,12 @@
-# Aurora Client (Fabric, Minecraft 1.21.1)
+# Aurora Client (Fabric, Minecraft 1.21 and 1.21.1)
 
 A modular HUD / quality-of-life client mod with a modern ClickGUI, HUD editor, profiles, an Aurora main menu and a
 built-in Bedwars texture pack.
 
 ## Install (Modrinth App or any launcher)
-1. Create an instance: **Minecraft 1.21.1**, loader **Fabric**.
-2. Add **Fabric API** to the instance (search it on Modrinth).
+1. Create an instance: **Minecraft 1.21** or **1.21.1**, loader **Fabric**. The same jar works on both (1.21.2 and
+   newer are not supported).
+2. Add **Fabric API** for that version to the instance (search it on Modrinth; 0.102.0+1.21 or newer on 1.21).
 3. Drop `aurora-client-1.1.0.jar` into the instance's Mods (or `mods/` folder).
 4. In game press **Right Shift** to open the ClickGUI (type to search, click a card to toggle, right-click for
    settings). Enable the texture pack with the **Bedwars Pack** module (Visuals) or in Options > Resource Packs
@@ -18,6 +19,8 @@ set JAVA_HOME=%APPDATA%\.minecraft\runtime\java-runtime-delta\windows\java-runti
 gradlew build        (jar -> build\libs\aurora-client-1.1.0.jar, ~30 s after the first run)
 gradlew runClient    (dev client; the first run downloads game assets)
 ```
+The build targets 1.21.1. To test on 1.21, set `minecraft_version=1.21` and `yarn_mappings=1.21+build.9` in
+`gradle.properties` (Fabric API can stay). The compiled classes are identical for both versions.
 Rebuild the bundled Bedwars pack from a 1.8.9 pack (renames textures, cuts GUI atlases, converts beds and chests):
 `java tools/PackConverter.java "[3Supay] f16x.zip" src/main/resources/resourcepacks/aurora_bedwars`
 
